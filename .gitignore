@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.venv
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+
+# Data files (keep structure, ignore large generated files)
+# Note: url_checker.db is included for first-time experience
+data/*.json
+data/*.txt
+# data/*.db  # Commented out to include url_checker.db
+!data/url_checker.db  # Include the sample database
+!data/.gitkeep
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
