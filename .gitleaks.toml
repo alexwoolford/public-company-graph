@@ -1,0 +1,72 @@
+# Gitleaks configuration for Domain Status Graph
+# This file customizes secret scanning behavior
+
+title = "Domain Status Graph Secret Scanning"
+
+# Allowlist patterns (files/directories to exclude from scanning)
+# These are safe to ignore as they don't contain secrets
+[allowlist]
+description = "Allowlist for files that may contain false positives"
+paths = [
+    '''\.git/''',
+    '''\.github/''',
+    '''\.env\.sample''',
+    '''\.env\.example''',
+    '''requirements\.txt''',
+    '''package\.json''',
+    '''package-lock\.json''',
+    '''yarn\.lock''',
+    '''Pipfile\.lock''',
+    '''poetry\.lock''',
+    '''\.pre-commit-config\.yaml''',
+    '''\.gitleaks\.toml''',
+    '''docs/''',
+    '''README\.md''',
+    '''LICENSE''',
+    '''\.gitignore''',
+    '''\.gitattributes''',
+    '''\.editorconfig''',
+    '''\.dockerignore''',
+    '''Dockerfile''',
+    '''docker-compose\.yml''',
+    '''\.github/workflows/''',
+    '''logs/''',
+    '''__pycache__/''',
+    '''\.pytest_cache/''',
+    '''\.mypy_cache/''',
+    '''\.coverage''',
+    '''htmlcov/''',
+    '''\.tox/''',
+    '''\.venv/''',
+    '''venv/''',
+    '''ENV/''',
+    '''env/''',
+    '''\.idea/''',
+    '''\.vscode/''',
+    '''\.DS_Store''',
+    '''Thumbs\.db''',
+    '''\.swp''',
+    '''\.swo''',
+    '''\*~''',
+    '''\.tmp''',
+    '''\.bak''',
+    '''\.cache''',
+    '''data/.*\.json''',  # Generated data files
+    '''data/.*\.txt''',   # Generated text files
+]
+
+# Regex patterns to allowlist (specific patterns that are false positives)
+regexes = [
+    '''example\.com''',
+    '''test@example\.com''',
+    '''1234567890''',  # Generic test numbers
+    '''test123''',
+    '''dummy.*key''',
+    '''sample.*token''',
+    '''placeholder''',
+]
+
+# Commit allowlist (specific commits to skip - useful for historical commits)
+# Leave empty unless you need to exclude specific commits
+commits = []
+

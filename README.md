@@ -18,7 +18,7 @@ A focused knowledge graph of domains and their technology stacks. Built with Neo
 
 - **Neo4j** (5.x or later) with GDS library installed
 - **Python 3.13+** (or use conda environment: `domain_status_graph`)
-- **SQLite database**: `data/url_checker.db` (source data)
+- **SQLite database**: `data/domain_status.db` (source data)
 
 ### Setup (Quick Version)
 
@@ -45,9 +45,9 @@ A focused knowledge graph of domains and their technology stacks. Built with Neo
 
 ## Data Source
 
-The graph is **completely recreatable** from `data/url_checker.db`:
+The graph is **completely recreatable** from `data/domain_status.db`:
 
-- **Source**: SQLite database (`data/url_checker.db`)
+- **Source**: SQLite database (`data/domain_status.db`)
 - **Data Generator**: The database is created by [`domain_status`](https://github.com/alexwoolford/domain_status), a Rust-based tool for high-performance concurrent checking of URL statuses, technology fingerprints, TLS certificates, DNS records, and more.
 - **ETL Script**: `scripts/bootstrap_graph.py` loads data from SQLite into Neo4j
 - **Schema**: See `docs/graph_schema.md` for complete schema documentation
@@ -58,7 +58,7 @@ The bootstrap script loads:
 
 This is all that's needed for the two useful GDS features.
 
-**Note**: A sample database (`data/url_checker.db`) is included in this repository to enable immediate exploration. To generate your own database with fresh data, use the [`domain_status`](https://github.com/alexwoolford/domain_status) tool.
+**Note**: A sample database (`data/domain_status.db`) is included in this repository to enable immediate exploration. To generate your own database with fresh data, use the [`domain_status`](https://github.com/alexwoolford/domain_status) tool.
 
 ## Graph Schema
 
@@ -120,7 +120,7 @@ See `docs/money_queries.md` for complete query examples.
 ```
 domain_status_graph/
 ├── data/
-│   └── url_checker.db          # Source SQLite database (included)
+│   └── domain_status.db        # Source SQLite database (included)
 ├── scripts/
 │   ├── bootstrap_graph.py      # ETL: SQLite → Neo4j
 │   ├── compute_advanced_gds_features.py  # GDS feature computation
@@ -148,4 +148,3 @@ domain_status_graph/
   - `neo4j` - Neo4j Python driver
   - `graphdatascience` - Neo4j GDS Python client
   - `python-dotenv` - Environment variable management
-

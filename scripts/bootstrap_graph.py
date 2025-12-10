@@ -29,6 +29,7 @@ load_dotenv()
 # Try to import Neo4j driver
 try:
     from neo4j import GraphDatabase
+
     NEO4J_AVAILABLE = True
 except ImportError:
     NEO4J_AVAILABLE = False
@@ -57,13 +58,18 @@ def create_constraints(driver, database: str = None):
     with driver.session(database=database) as session:
         constraints = [
             # Domain constraints
-            "CREATE CONSTRAINT domain_name IF NOT EXISTS FOR (d:Domain) REQUIRE d.final_domain IS UNIQUE",
+            (
+                "CREATE CONSTRAINT domain_name IF NOT EXISTS "
+                "FOR (d:Domain) REQUIRE d.final_domain IS UNIQUE"
+            ),
             "CREATE INDEX domain_domain IF NOT EXISTS FOR (d:Domain) ON (d.domain)",
-            
             # Technology constraints
-            "CREATE CONSTRAINT technology_name IF NOT EXISTS FOR (t:Technology) REQUIRE t.name IS UNIQUE",
+            (
+                "CREATE CONSTRAINT technology_name IF NOT EXISTS "
+                "FOR (t:Technology) REQUIRE t.name IS UNIQUE"
+            ),
         ]
-        
+
         for constraint in constraints:
             try:
                 session.run(constraint)
@@ -79,8 +85,9 @@ def load_domains(driver, db_path: str, batch_size: int = 1000, database: str = N
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    
-    cursor.execute("""
+
+    cursor.execute(
+        """
         SELECT DISTINCT
             us.final_domain,
             us.domain,
@@ -99,17 +106,18 @@ def load_domains(driver, db_path: str, batch_size: int = 1000, database: str = N
         FROM url_status us
         LEFT JOIN url_whois w ON us.id = w.url_status_id
         WHERE us.final_domain IS NOT NULL
-    """)
-    
+    """
+    )
+
     domains = cursor.fetchall()
     conn.close()
-    
+
     print(f"Loading {len(domains)} Domain nodes...")
-    
+
     with driver.session(database=database) as session:
         for i in range(0, len(domains), batch_size):
-            batch = domains[i:i+batch_size]
-            
+            batch = domains[i : i + batch_size]
+
             query = """
             UNWIND $batch AS row
             MERGE (d:Domain {final_domain: row.final_domain})
@@ -128,13 +136,13 @@ def load_domains(driver, db_path: str, batch_size: int = 1000, database: str = N
                 d.registrant_org = row.registrant_org,
                 d.loaded_at = datetime()
             """
-            
+
             batch_data = [dict(row) for row in batch]
             session.run(query, batch=batch_data)
-            
+
             if (i // batch_size + 1) % 10 == 0:
                 print(f"  Processed {i + len(batch)}/{len(domains)} domains...")
-    
+
     print(f"✓ Loaded {len(domains)} Domain nodes")
 
 
@@ -143,22 +151,25 @@ def load_technologies(driver, db_path: str, batch_size: int = 1000, database: st
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    
-    cursor.execute("""
+
+    cursor.execute(
+        """
         SELECT DISTINCT us.final_domain, ut.technology_name, ut.technology_category
         FROM url_status us
         JOIN url_technologies ut ON us.id = ut.url_status_id
         WHERE ut.technology_name IS NOT NULL AND ut.technology_name != ''
-    """)
-    
+    """
+    )
+
     tech_mappings = cursor.fetchall()
     conn.close()
-    
+
     print(f"Loading {len(tech_mappings)} technologies and USES relationships...")
-    
-    unique_techs = set((row["technology_name"], row["technology_category"]) 
-                       for row in tech_mappings)
-    
+
+    unique_techs = set(
+        (row["technology_name"], row["technology_category"]) for row in tech_mappings
+    )
+
     with driver.session(database=database) as session:
         # Create Technology nodes
         query = """
@@ -167,15 +178,14 @@ def load_technologies(driver, db_path: str, batch_size: int = 1000, database: st
         SET t.category = tech.category,
             t.loaded_at = datetime()
         """
-        tech_data = [{"name": name, "category": category} 
-                    for name, category in unique_techs]
+        tech_data = [{"name": name, "category": category} for name, category in unique_techs]
         session.run(query, techs=tech_data)
         print(f"  ✓ Created {len(unique_techs)} Technology nodes")
-        
+
         # Create USES relationships
         for i in range(0, len(tech_mappings), batch_size):
-            batch = tech_mappings[i:i+batch_size]
-            
+            batch = tech_mappings[i : i + batch_size]
+
             query = """
             UNWIND $batch AS row
             MATCH (d:Domain {final_domain: row.final_domain})
@@ -183,24 +193,24 @@ def load_technologies(driver, db_path: str, batch_size: int = 1000, database: st
             MERGE (d)-[r:USES]->(t)
             SET r.loaded_at = datetime()
             """
-            
+
             batch_data = [dict(row) for row in batch]
             session.run(query, batch=batch_data)
-            
+
             if (i // batch_size + 1) % 10 == 0:
                 print(f"  Processed {i + len(batch)}/{len(tech_mappings)} relationships...")
-    
-    print(f"✓ Loaded USES relationships")
+
+    print("✓ Loaded USES relationships")
 
 
 def dry_run_plan(db_path: Path):
     """Print the ETL plan without executing."""
     import sqlite3
-    
+
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    
+
     print("=" * 70)
     print("ETL PLAN (Dry Run)")
     print("=" * 70)
@@ -210,33 +220,39 @@ def dry_run_plan(db_path: Path):
     print("  1. Technology Adoption Prediction (Personalized PageRank)")
     print("  2. Technology Affinity Bundling (Node Similarity)")
     print()
-    
+
     # Count records
-    cursor.execute("SELECT COUNT(DISTINCT final_domain) FROM url_status WHERE final_domain IS NOT NULL")
+    cursor.execute(
+        "SELECT COUNT(DISTINCT final_domain) FROM url_status WHERE final_domain IS NOT NULL"
+    )
     domain_count = cursor.fetchone()[0]
-    
-    cursor.execute("""
-        SELECT COUNT(DISTINCT ut.technology_name) 
-        FROM url_technologies ut 
+
+    cursor.execute(
+        """
+        SELECT COUNT(DISTINCT ut.technology_name)
+        FROM url_technologies ut
         WHERE ut.technology_name IS NOT NULL AND ut.technology_name != ''
-    """)
+    """
+    )
     tech_count = cursor.fetchone()[0]
-    
-    cursor.execute("""
-        SELECT COUNT(*) 
-        FROM url_technologies ut 
+
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM url_technologies ut
         WHERE ut.technology_name IS NOT NULL AND ut.technology_name != ''
-    """)
+    """
+    )
     uses_count = cursor.fetchone()[0]
-    
+
     conn.close()
-    
+
     print("Data to be loaded:")
     print("-" * 70)
     print(f"  Domains: {domain_count:,}")
     print(f"  Technologies: {tech_count:,}")
     print(f"  USES relationships: {uses_count:,}")
-    
+
     print()
     print("=" * 70)
     print("To execute this plan, run: python scripts/bootstrap_graph.py --execute")
@@ -244,7 +260,7 @@ def dry_run_plan(db_path: Path):
 
 
 def main():
-    """Main ETL pipeline."""
+    """Run the main ETL pipeline."""
     parser = argparse.ArgumentParser(description="Bootstrap Neo4j graph from SQLite domain data")
     parser.add_argument(
         "--execute",
@@ -252,18 +268,18 @@ def main():
         help="Actually execute the ETL (default is dry-run)",
     )
     args = parser.parse_args()
-    
-    db_path = Path("data/url_checker.db")
-    
+
+    db_path = Path("data/domain_status.db")
+
     if not db_path.exists():
         print(f"ERROR: Database not found at {db_path}")
         sys.exit(1)
-    
+
     # Dry-run mode (default)
     if not args.execute:
         dry_run_plan(db_path)
         return
-    
+
     # Execute mode
     print("=" * 70)
     print("Domain Status Graph ETL Pipeline")
@@ -272,19 +288,19 @@ def main():
     print("Loading only Domain and Technology nodes + USES relationships.")
     print("This is all that's needed for the two useful GDS features.")
     print()
-    
+
     if not NEO4J_AVAILABLE:
         print("ERROR: neo4j driver not installed")
         print("Install with: pip install neo4j")
         sys.exit(1)
-    
+
     driver = get_neo4j_driver()
-    
+
     # Use the specified database (default: 'domain')
     database = NEO4J_DATABASE
     print(f"Using database: {database}")
     print()
-    
+
     try:
         # Test connection
         with driver.session(database=database) as session:
@@ -292,38 +308,42 @@ def main():
             result.single()
         print("✓ Connected to Neo4j")
         print()
-        
+
         # Create constraints
         print("Creating constraints and indexes...")
         create_constraints(driver, database=database)
         print()
-        
+
         # Load data
         print("Loading data from SQLite to Neo4j...")
         print("-" * 70)
-        
+
         load_domains(driver, str(db_path), database=database)
         print()
-        
+
         load_technologies(driver, str(db_path), database=database)
         print()
-        
+
         # Summary
         print("=" * 70)
         print("ETL Complete!")
         print("=" * 70)
-        
+
         with driver.session(database=database) as session:
-            result = session.run("MATCH (n) RETURN labels(n)[0] AS label, count(*) AS count ORDER BY count DESC")
+            result = session.run(
+                "MATCH (n) RETURN labels(n)[0] AS label, count(*) AS count ORDER BY count DESC"
+            )
             print("\nNode counts:")
             for record in result:
                 print(f"  {record['label']:20s}: {record['count']:,}")
-            
-            result = session.run("MATCH ()-[r]->() RETURN type(r) AS type, count(*) AS count ORDER BY count DESC")
+
+            result = session.run(
+                "MATCH ()-[r]->() RETURN type(r) AS type, count(*) AS count ORDER BY count DESC"
+            )
             print("\nRelationship counts:")
             for record in result:
                 print(f"  {record['type']:20s}: {record['count']:,}")
-        
+
     finally:
         driver.close()
 

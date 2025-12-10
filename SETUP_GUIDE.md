@@ -9,7 +9,7 @@ Before starting, ensure you have:
 - [ ] **Neo4j 5.x or later** installed and running
 - [ ] **Neo4j Graph Data Science (GDS) library** installed and enabled
 - [ ] **Python 3.13+** (or use conda environment)
-- [ ] **SQLite database** at `data/url_checker.db` (source data - included in repository, or generate your own with [`domain_status`](https://github.com/alexwoolford/domain_status))
+- [ ] **SQLite database** at `data/domain_status.db` (source data - included in repository, or generate your own with [`domain_status`](https://github.com/alexwoolford/domain_status))
 - [ ] **Network access** to Neo4j (default: `bolt://localhost:7687`)
 
 ### Verify Prerequisites
@@ -104,12 +104,12 @@ print(f'✓ Database: {database}')
 
 ```bash
 # Check that SQLite database exists
-ls -lh data/url_checker.db
+ls -lh data/domain_status.db
 
 # Verify it has data
 python3 -c "
 import sqlite3
-conn = sqlite3.connect('data/url_checker.db')
+conn = sqlite3.connect('data/domain_status.db')
 cursor = conn.cursor()
 cursor.execute('SELECT COUNT(*) FROM url_status')
 domains = cursor.fetchone()[0]
@@ -202,17 +202,17 @@ with driver.session(database=os.getenv('NEO4J_DATABASE', 'domain')) as session:
     result = session.run('MATCH (d:Domain) RETURN count(d) AS count')
     domains = result.single()['count']
     print(f'✓ Domain nodes: {domains}')
-    
+
     # Check Technology nodes
     result = session.run('MATCH (t:Technology) RETURN count(t) AS count')
     techs = result.single()['count']
     print(f'✓ Technology nodes: {techs}')
-    
+
     # Check USES relationships
     result = session.run('MATCH ()-[r:USES]->() RETURN count(r) AS count')
     uses = result.single()['count']
     print(f'✓ USES relationships: {uses}')
-    
+
     # Check constraints exist
     result = session.run('SHOW CONSTRAINTS')
     constraints = list(result)
@@ -221,7 +221,7 @@ driver.close()
 "
 ```
 
-**Expected**: 
+**Expected**:
 - Domain nodes: ~5,000-6,000
 - Technology nodes: ~500-600
 - USES relationships: ~30,000-40,000
@@ -281,12 +281,12 @@ with driver.session(database=os.getenv('NEO4J_DATABASE', 'domain')) as session:
     result = session.run('MATCH ()-[r:LIKELY_TO_ADOPT]->() RETURN count(r) AS count')
     adopt = result.single()['count']
     print(f'✓ LIKELY_TO_ADOPT relationships: {adopt}')
-    
+
     # Check CO_OCCURS_WITH relationships
     result = session.run('MATCH ()-[r:CO_OCCURS_WITH]->() RETURN count(r) AS count')
     cooccurs = result.single()['count']
     print(f'✓ CO_OCCURS_WITH relationships: {cooccurs}')
-    
+
     # Sample query: Find domains likely to adopt a technology
     result = session.run('''
         MATCH (t:Technology)<-[r:LIKELY_TO_ADOPT]-(d:Domain)
@@ -387,7 +387,7 @@ LIMIT 10;
 ### Issue: "SQLite database not found"
 
 **Solution**:
-1. Verify `data/url_checker.db` exists
+1. Verify `data/domain_status.db` exists
 2. Check file permissions
 3. Verify database has data (see Step 4)
 
@@ -492,4 +492,3 @@ If you encounter issues:
 ---
 
 *Last Updated: 2024-11-30*
-

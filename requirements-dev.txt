@@ -1,0 +1,19 @@
+# Development dependencies
+# Install with: pip install -r requirements-dev.txt
+
+# Include production requirements
+-r requirements.txt
+
+# Pre-commit hooks (for secret scanning and code quality)
+pre-commit>=3.6.0
+
+# Code quality tools (also used by pre-commit)
+black>=24.1.1
+isort>=5.13.2
+flake8>=7.0.0
+mypy>=1.8.0
+
+# Testing (if you add tests)
+pytest>=8.0.0
+pytest-cov>=4.1.0
+
