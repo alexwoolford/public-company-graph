@@ -1,6 +1,8 @@
 # High-Value Graph Queries
 
-This document provides **2 high-value graph features** that are fully implemented and provide unique graph value. Each feature uses Graph Data Science algorithms that would be difficult or impossible to compute with simple SQL aggregations.
+This document provides **2 high-value Graph Data Science features** that are fully implemented and provide unique graph value. Each feature uses Neo4j Graph Data Science algorithms that would be difficult or impossible to compute with simple SQL aggregations.
+
+**Why Graph Data Science?** These algorithms solve the problem of finding indirect relationships (2-3 hops away) that SQL struggles with. Personalized PageRank and Node Similarity leverage the graph structure to provide insights that would require exponentially complex SQL queries.
 
 ## ✅ Fully Supported Features
 
@@ -23,9 +25,12 @@ LIMIT 20
 **How it works**:
 1. Creates a Technology-Technology graph where technologies are connected if they co-occur on domains
 2. For each technology, runs Personalized PageRank starting from that technology
+   - PageRank spreads "similarity" through the graph: technologies that co-occur with the target are similar, and technologies that co-occur with those are also similar (2-3 hops away)
 3. Finds domains that use similar technologies (but not the target technology)
 4. Ranks domains by their likelihood to adopt the target technology
 5. Stores top 50 predictions as `LIKELY_TO_ADOPT` relationships
+
+**Why Personalized PageRank?** Unlike simple counting, PPR captures indirect relationships. A domain using "WooCommerce" (similar to Shopify) and "Stripe" (often used with WooCommerce) is identified as a likely Shopify adopter, even though it doesn't directly use Shopify-compatible technologies.
 
 **Business Value**:
 - **Sales targeting**: "Which companies should we target for our product?"
@@ -109,6 +114,8 @@ LIMIT 20
 | 2. Technology Co-Occurrence & Affinity | ✅ Fully Supported | HIGH | GDS Node Similarity (Jaccard) | Partnerships, integrations, bundling |
 
 **Total**: 2 GDS features, both fully supported and providing unique graph value.
+
+**Note**: The project also includes Company Description Similarity (using cosine similarity on embeddings), but this is implemented with numpy, not GDS. The two GDS features above are the core focus and demonstrate why Graph Data Science is necessary for finding indirect relationships.
 
 ## Related Documentation
 

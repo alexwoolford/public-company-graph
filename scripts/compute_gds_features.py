@@ -21,6 +21,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -79,6 +80,59 @@ def safe_drop_graph(gds, graph_name: str):
         return False
 
 
+def delete_relationships_in_batches(
+    driver, rel_type: str, batch_size: int = 10000, database: str = None
+):
+    """
+    Delete all relationships of a given type in batches using Neo4j's native IN TRANSACTIONS.
+
+    This uses the modern Neo4j 5.x+ syntax that doesn't require APOC.
+    This is necessary for large graphs where a simple MATCH/DELETE would
+    cause memory issues or timeouts.
+
+    Args:
+        driver: Neo4j driver
+        rel_type: Relationship type to delete (e.g., 'LIKELY_TO_ADOPT')
+        batch_size: Number of relationships to delete per batch (default: 10000)
+        database: Neo4j database name
+    """
+    print(f"   Deleting existing {rel_type} relationships in batches...")
+    with driver.session(database=database) as session:
+        # Get count before deletion for feedback
+        count_before = session.run(
+            f"MATCH ()-[r:{rel_type}]->() RETURN count(r) AS count"
+        ).single()["count"]
+
+        if count_before == 0:
+            print(f"   ✓ No {rel_type} relationships to delete")
+            return
+
+        # Use Neo4j's native IN TRANSACTIONS syntax (Neo4j 5.x+)
+        # This is more modern and doesn't require APOC
+        query = f"""
+        MATCH ()-[r:{rel_type}]->()
+        DELETE r
+        IN TRANSACTIONS OF {batch_size} ROWS
+        """
+        try:
+            result = session.run(query)
+            # Consume the result to execute the query
+            result.consume()
+            print(f"   ✓ Deleted {count_before:,} {rel_type} relationships in batches")
+        except Exception as e:
+            # Fallback to simple delete if IN TRANSACTIONS not supported (Neo4j < 5.x)
+            error_str = str(e).lower()
+            if "in transactions" in error_str or "syntax" in error_str or "unknown" in error_str:
+                print("   ⚠ IN TRANSACTIONS not supported, using simple DELETE (may be slow)")
+                result = session.run(
+                    f"MATCH ()-[r:{rel_type}]->() DELETE r RETURN count(r) AS deleted"
+                )
+                deleted = result.single()["deleted"]
+                print(f"   ✓ Deleted {deleted:,} {rel_type} relationships")
+            else:
+                raise
+
+
 def compute_tech_adoption_prediction(gds, driver, database: str = None):
     """
     Technology Adopter Prediction (Technology → Domain).
@@ -126,8 +180,13 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None):
             RETURN id(t1) AS source, id(t2) AS target, co_occurrence_count AS weight
             """,
         )
-        print(
-            f"   ✓ Created graph: {result['nodeCount']} nodes, {result['relationshipCount']} relationships"
+        node_count = result["nodeCount"]
+        rel_count = result["relationshipCount"]
+        print(f"   ✓ Created graph: {node_count} nodes, {rel_count} relationships")
+
+        # Delete existing LIKELY_TO_ADOPT relationships for idempotency
+        delete_relationships_in_batches(
+            driver, "LIKELY_TO_ADOPT", batch_size=10000, database=database
         )
 
         # Compute Personalized PageRank for all technologies (excluding ubiquitous ones)
@@ -167,10 +226,12 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None):
                         elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()
                         rate = idx / elapsed if elapsed > 0 else 0
                         remaining = (total_techs - idx) / rate if rate > 0 else 0
+                        pct = idx * 100 / total_techs
+                        rate_str = f"{rate:.1f} techs/sec"
+                        eta_str = f"{remaining/60:.1f} min"
                         print(
-                            f"   Progress: {idx}/{total_techs} technologies ({idx*100/total_techs:.1f}%) | "
-                            f"Rate: {rate:.1f} techs/sec | "
-                            f"ETA: {remaining/60:.1f} min | "
+                            f"   Progress: {idx}/{total_techs} technologies ({pct:.1f}%) | "
+                            f"Rate: {rate_str} | ETA: {eta_str} | "
                             f"Predictions: {predictions_written}"
                         )
 
@@ -203,7 +264,8 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None):
                              sum(t_similar.ppr_score_temp) AS total_similarity_score
                         // Score = combination of max similarity and number of similar techs used
                         WITH d, t_target,
-                             max_similarity_score * (1 + log(similar_tech_count + 1)) AS adoption_score
+                             max_similarity_score * (1 + log(similar_tech_count + 1))
+                                 AS adoption_score
                         ORDER BY adoption_score DESC
                         LIMIT 50  // Top 50 likely adopters per technology
                         MERGE (d)-[r:LIKELY_TO_ADOPT]->(t_target)
@@ -253,7 +315,8 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None):
     Example: WordPress + MySQL, Google Analytics + Google Tag Manager.
 
     Implementation:
-    1. Create Technology-Technology projection (two technologies connected if they co-occur on at least one domain)
+    1. Create Technology-Technology projection
+       (two technologies connected if they co-occur on at least one domain)
     2. Run GDS Node Similarity (Jaccard) on Technology nodes
     3. Create CO_OCCURS_WITH relationships between technologies
     """
@@ -283,9 +346,9 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None):
             RETURN id(t1) AS source, id(t2) AS target
             """,
         )
-        print(
-            f"   ✓ Created graph: {result['nodeCount']} nodes, {result['relationshipCount']} relationships"
-        )
+        node_count = result["nodeCount"]
+        rel_count = result["relationshipCount"]
+        print(f"   ✓ Created graph: {node_count} nodes, {rel_count} relationships")
 
         # Run Node Similarity on Technology nodes
         print("   Computing Node Similarity (Jaccard) using GDS...")
@@ -316,9 +379,8 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None):
                         sim_col = col
 
                 if not (col1 and col2 and sim_col):
-                    print(
-                        f"   ✗ Error: Could not identify columns. Available: {list(similarity_result.columns)}"
-                    )
+                    cols = list(similarity_result.columns)
+                    print(f"   ✗ Error: Could not identify columns. Available: {cols}")
                     raise ValueError(
                         f"Unexpected DataFrame columns: {list(similarity_result.columns)}"
                     )
@@ -425,6 +487,161 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None):
         traceback.print_exc()
 
 
+def compute_company_description_similarity(
+    driver,
+    similarity_threshold: float = 0.7,
+    top_k: int = 50,
+    database: str = None,
+    execute: bool = True,
+):
+    """
+    Company Description Similarity.
+
+    Find companies with similar descriptions using cosine similarity on embeddings.
+    Example: Companies in similar industries, with similar business models.
+
+    Implementation:
+    1. Load all Company nodes with description_embedding property
+    2. Compute pairwise cosine similarity between embeddings
+    3. Create SIMILAR_DESCRIPTION relationships for top-k most similar companies
+    """
+    if not execute:
+        print("\n" + "=" * 70)
+        print("3. Company Description Similarity (Dry Run)")
+        print("=" * 70)
+        print("   Use case: Find companies with similar business descriptions")
+        print("   Relationship: Company-[SIMILAR_DESCRIPTION {score}]->Company")
+        print("   Algorithm: Cosine similarity on description embeddings")
+        return
+
+    print("\n" + "=" * 70)
+    print("3. Company Description Similarity")
+    print("=" * 70)
+    print("   Use case: Find companies with similar business descriptions")
+    print("   Relationship: Company-[SIMILAR_DESCRIPTION {score}]->Company")
+    print("   Algorithm: Cosine similarity on description embeddings")
+
+    try:
+        # Delete existing SIMILAR_DESCRIPTION relationships for idempotency
+        delete_relationships_in_batches(
+            driver, "SIMILAR_DESCRIPTION", batch_size=10000, database=database
+        )
+
+        with driver.session(database=database) as session:
+            # Load all companies with embeddings
+            print("   Loading Company nodes with embeddings...")
+            result = session.run(
+                """
+                MATCH (c:Company)
+                WHERE c.description_embedding IS NOT NULL
+                RETURN id(c) AS node_id, c.cik AS cik, c.description_embedding AS embedding
+                """
+            )
+
+            companies = []
+            for record in result:
+                embedding = record["embedding"]
+                if embedding and isinstance(embedding, list):
+                    companies.append(
+                        {
+                            "node_id": record["node_id"],
+                            "cik": record["cik"],
+                            "embedding": np.array(embedding, dtype=np.float32),
+                        }
+                    )
+
+            print(f"   Found {len(companies)} companies with embeddings")
+
+            if len(companies) < 2:
+                print("   ⚠ Not enough companies with embeddings to compute similarity")
+                return
+
+            # Compute pairwise cosine similarity
+            print("   Computing pairwise cosine similarity...")
+            print(f"   Threshold: {similarity_threshold}, Top-K per company: {top_k}")
+
+            # Convert to numpy array for efficient computation
+            embeddings_matrix = np.array([c["embedding"] for c in companies])
+            ciks = [c["cik"] for c in companies]
+
+            # Normalize embeddings for cosine similarity
+            norms = np.linalg.norm(embeddings_matrix, axis=1, keepdims=True)
+            norms[norms == 0] = 1  # Avoid division by zero
+            embeddings_normalized = embeddings_matrix / norms
+
+            # Compute cosine similarity matrix (all pairs)
+            similarity_matrix = np.dot(embeddings_normalized, embeddings_normalized.T)
+
+            # Write relationships (top-k per company, above threshold)
+            print("   Writing SIMILAR_DESCRIPTION relationships...")
+            relationships_written = 0
+            batch = []
+
+            for i, _company in enumerate(companies):
+                # Get similarities for this company (excluding self-similarity)
+                similarities = similarity_matrix[i]
+                # Set self-similarity to -1 to exclude it
+                similarities[i] = -1
+
+                # Get top-k most similar companies
+                top_indices = np.argsort(similarities)[::-1][:top_k]
+
+                for j in top_indices:
+                    similarity_score = float(similarities[j])
+                    if similarity_score >= similarity_threshold:
+                        batch.append(
+                            {
+                                "cik1": ciks[i],
+                                "cik2": ciks[j],
+                                "score": similarity_score,
+                            }
+                        )
+
+                        # Write in batches of 1000
+                        if len(batch) >= 1000:
+                            session.run(
+                                """
+                                UNWIND $batch AS rel
+                                MATCH (c1:Company {cik: rel.cik1})
+                                MATCH (c2:Company {cik: rel.cik2})
+                                WHERE c1 <> c2
+                                MERGE (c1)-[r:SIMILAR_DESCRIPTION]->(c2)
+                                SET r.score = rel.score,
+                                    r.metric = 'COSINE',
+                                    r.computed_at = datetime()
+                                """,
+                                batch=batch,
+                            )
+                            relationships_written += len(batch)
+                            batch = []
+
+            # Write remaining batch
+            if batch:
+                session.run(
+                    """
+                    UNWIND $batch AS rel
+                    MATCH (c1:Company {cik: rel.cik1})
+                    MATCH (c2:Company {cik: rel.cik2})
+                    WHERE c1 <> c2
+                    MERGE (c1)-[r:SIMILAR_DESCRIPTION]->(c2)
+                    SET r.score = rel.score,
+                        r.metric = 'COSINE',
+                        r.computed_at = datetime()
+                    """,
+                    batch=batch,
+                )
+                relationships_written += len(batch)
+
+            print(f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships")
+            print("   ✓ Complete")
+
+    except Exception as e:
+        print(f"   ✗ Error: {e}")
+        import traceback
+
+        traceback.print_exc()
+
+
 def cleanup_leftover_graphs(gds, database: str = None):
     """Drop any leftover graph projections from previous runs."""
     try:
@@ -449,7 +666,7 @@ def cleanup_leftover_graphs(gds, database: str = None):
 
 
 def main():
-    """Main GDS computation pipeline."""
+    """Run main GDS computation pipeline."""
     parser = argparse.ArgumentParser(description="Compute GDS features using Python GDS client")
     parser.add_argument(
         "--execute",
@@ -523,6 +740,11 @@ def main():
             print("   - Finds technology pairs that commonly co-occur")
             print("   - Creates: Technology-[CO_OCCURS_WITH {similarity}]->Technology")
             print()
+            print("3. Company Description Similarity (Cosine Similarity)")
+            print("   - Finds companies with similar business descriptions")
+            print("   - Creates: Company-[SIMILAR_DESCRIPTION {score}]->Company")
+            print("   - Note: Requires Company nodes with description_embedding property")
+            print()
             print("=" * 70)
             print("To execute, run: python scripts/compute_gds_features.py --execute")
             print("=" * 70)
@@ -536,9 +758,27 @@ def main():
         print(f"Using Python GDS Client: {gds.__class__.__module__}")
         print()
 
-        # Compute features
+        # Compute tech features (always run)
         compute_tech_adoption_prediction(gds, driver, database=database)
         compute_tech_affinity_bundling(gds, driver, database=database)
+
+        # Compute company similarity (only if Company nodes exist)
+        with driver.session(database=database) as session:
+            result = session.run(
+                """
+                MATCH (c:Company)
+                WHERE c.description_embedding IS NOT NULL
+                RETURN count(c) AS company_count
+                """
+            )
+            company_count = result.single()["company_count"]
+
+        if company_count > 0:
+            print(f"\n   Found {company_count} companies with embeddings - computing similarity...")
+            compute_company_description_similarity(driver, database=database, execute=True)
+        else:
+            print("\n   ⚠ No companies with embeddings found - skipping company similarity")
+            compute_company_description_similarity(driver, database=database, execute=False)
 
         # Summary
         print("\n" + "=" * 70)
@@ -561,6 +801,14 @@ def main():
             """
             )
             print(f"Technology Affinity Relationships: {result.single()['tech_affinities']}")
+
+            result = session.run(
+                """
+                MATCH ()-[r:SIMILAR_DESCRIPTION]->()
+                RETURN count(r) AS company_similarities
+            """
+            )
+            print(f"Company Description Similarities: {result.single()['company_similarities']}")
 
     finally:
         driver.close()

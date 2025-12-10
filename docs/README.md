@@ -17,7 +17,7 @@ Complete schema documentation:
 - Common query patterns
 - **Essential reference** for understanding the graph structure
 
-### [Advanced GDS Features](./advanced_gds_features.md) 🚀
+### [GDS Features](./gds_features.md) 🚀
 Documentation of the two implemented GDS features:
 - Technology Adoption Prediction (Personalized PageRank)
 - Technology Affinity Bundling (Node Similarity)
@@ -40,7 +40,7 @@ Analysis of GDS algorithm coverage:
 
 1. **Read**: `money_queries.md` - Understand the 2 GDS features
 2. **Bootstrap**: Run `python scripts/bootstrap_graph.py --execute`
-3. **Compute Features**: Run `python scripts/compute_advanced_gds_features.py --execute`
+3. **Compute Features**: Run `python scripts/compute_gds_features.py --execute`
 4. **Query**: Use examples from `money_queries.md`
 
 ## Related Documentation

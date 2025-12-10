@@ -166,6 +166,29 @@ LIMIT 10
 
 ---
 
+### SIMILAR_DESCRIPTION
+
+**Type**: `(Company)-[:SIMILAR_DESCRIPTION {score}]->(Company)`
+
+**Description**: Cosine similarity between company descriptions based on embedding vectors. Computed using numpy (not GDS).
+
+**Properties**:
+- `score` (FLOAT) - Cosine similarity score (0-1, higher = more similar)
+- `metric` (STRING) - Similarity metric used (`COSINE`)
+- `computed_at` (DATETIME) - When the relationship was computed
+
+**Example**:
+```cypher
+MATCH (c1:Company {ticker: 'AAPL'})-[r:SIMILAR_DESCRIPTION]->(c2:Company)
+RETURN c2.name, c2.ticker, r.score
+ORDER BY r.score DESC
+LIMIT 10
+```
+
+**Use Case**: Competitive analysis, market segmentation, partnership opportunities
+
+---
+
 ## Constraints and Indexes
 
 ### Constraints
@@ -229,6 +252,7 @@ GDS features are computed using `scripts/compute_gds_features.py`:
 
 1. **LIKELY_TO_ADOPT relationships** - Computed using Personalized PageRank
 2. **CO_OCCURS_WITH relationships** - Computed using Node Similarity (Jaccard)
+3. **SIMILAR_DESCRIPTION relationships** - Computed using cosine similarity on embeddings
 
 ---
 

@@ -417,11 +417,13 @@ cp .env.sample .env
 # 5. Clean Neo4j (if needed)
 echo "MATCH (n) DETACH DELETE n;" | cypher-shell -u neo4j -p your_password -d domain
 
-# 6. Bootstrap graph
+# 6. Bootstrap graph and compute GDS features
+# Option A: Run individually
 python scripts/bootstrap_graph.py --execute
-
-# 7. Compute GDS features
 python scripts/compute_gds_features.py --execute
+
+# Option B: Use orchestration script (runs all pipelines in order)
+# python scripts/run_all_pipelines.py --execute
 
 # 8. Verify
 python3 -c "
@@ -465,7 +467,7 @@ Once setup is complete:
 2. **Explore**: `docs/money_queries.md` - High-value business queries
 3. **Query**: Use the example queries in `README.md` to explore the graph
 
-**Optional**: You can also run `python scripts/verify_setup.py` for automated verification, but the core scripts will fail fast if something is wrong, making this optional.
+**Verification**: The core scripts will fail fast if something is wrong, providing immediate feedback. You can also run the example queries in Step 8 to verify everything is working.
 
 ---
 

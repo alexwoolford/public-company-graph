@@ -5,9 +5,11 @@
 You have **2 high-value Graph Data Science features** that provide real business value:
 
 1. **Technology Adopter Prediction** - Uses GDS Personalized PageRank to predict which domains are likely to adopt a technology (⭐ HIGH VALUE)
-2. **Technology Co-Occurrence & Affinity** - Uses GDS Node Similarity to find technology pairs that commonly appear together (⭐ HIGH VALUE)
+2. **Technology Co-Occurrence & Affinity** - Uses GDS Node Similarity (Jaccard) to find technology pairs that commonly appear together (⭐ HIGH VALUE)
 
-Both features leverage Neo4j's Graph Data Science library to provide insights that would be difficult or impossible with traditional SQL queries.
+Both features leverage Neo4j's Graph Data Science library to provide insights that would be difficult or impossible with traditional SQL queries. They solve the problem of finding indirect relationships (2-3 hops away) that SQL struggles with.
+
+**Note**: The project also includes Company Description Similarity (using cosine similarity on embeddings), but this is implemented with numpy, not GDS. The two GDS features above are the core focus.
 
 ---
 
@@ -55,15 +57,26 @@ LIMIT 10
 
 ## How to Run
 
-### 1. Bootstrap the Graph (First Time)
+### Option A: Run Scripts Individually
+
+1. **Bootstrap the Graph**:
+   ```bash
+   python scripts/bootstrap_graph.py --execute
+   ```
+
+2. **Compute GDS Features**:
+   ```bash
+   python scripts/compute_gds_features.py --execute
+   ```
+
+### Option B: Use Orchestration Script
+
+Run all pipelines in the correct order:
 ```bash
-python scripts/bootstrap_graph.py --execute
+python scripts/run_all_pipelines.py --execute
 ```
 
-### 2. Compute GDS Features
-```bash
-python scripts/compute_gds_features.py --execute
-```
+This runs: bootstrap → GDS features → company data pipeline (if configured)
 
 ---
 

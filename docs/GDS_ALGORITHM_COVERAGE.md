@@ -123,5 +123,5 @@ LIMIT 10
 ## Related Documentation
 
 - **High-Value Queries**: `docs/money_queries.md` - 2 GDS features with business value
-- **GDS Features**: `docs/advanced_gds_features.md` - Detailed feature documentation
+- **GDS Features**: `docs/gds_features.md` - Detailed feature documentation
 - **Graph Schema**: `docs/graph_schema.md` - Complete schema documentation
