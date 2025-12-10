@@ -225,7 +225,7 @@ The graph is loaded from `data/domain_status.db` using `scripts/bootstrap_graph.
 2. **Technology nodes** - Loaded from `url_technologies` table
 3. **USES relationships** - Created from domain-technology mappings
 
-GDS features are computed using `scripts/compute_advanced_gds_features.py`:
+GDS features are computed using `scripts/compute_gds_features.py`:
 
 1. **LIKELY_TO_ADOPT relationships** - Computed using Personalized PageRank
 2. **CO_OCCURS_WITH relationships** - Computed using Node Similarity (Jaccard)
@@ -234,6 +234,6 @@ GDS features are computed using `scripts/compute_advanced_gds_features.py`:
 
 ## Related Documentation
 
-- **High-Value Queries**: `docs/money_queries.md` - 4 graph queries with business value
-- **GDS Features**: `docs/advanced_gds_features.md` - Detailed feature documentation
+- **High-Value Queries**: `docs/money_queries.md` - 2 GDS features with business value
+- **GDS Features**: `docs/gds_features.md` - Detailed feature documentation
 - **Business Queries**: `docs/money_queries.md` - High-value business queries

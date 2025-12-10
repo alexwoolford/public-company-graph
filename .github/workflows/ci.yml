@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.13"]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.13"]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -113,4 +113,3 @@ jobs:
             echo "⚠️  No tests found. Skipping test execution."
           fi
         continue-on-error: true  # Don't fail CI if no tests exist yet
-

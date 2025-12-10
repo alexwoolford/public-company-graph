@@ -69,4 +69,3 @@ regexes = [
 # Commit allowlist (specific commits to skip - useful for historical commits)
 # Leave empty unless you need to exclude specific commits
 commits = []
-

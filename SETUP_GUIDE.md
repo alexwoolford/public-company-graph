@@ -234,7 +234,7 @@ driver.close()
 ### 7a. Dry Run (Review Plan)
 
 ```bash
-python scripts/compute_advanced_gds_features.py
+python scripts/compute_gds_features.py
 ```
 
 **Expected Output**: You should see:
@@ -247,7 +247,7 @@ python scripts/compute_advanced_gds_features.py
 ### 7b. Execute GDS Computation
 
 ```bash
-python scripts/compute_advanced_gds_features.py --execute
+python scripts/compute_gds_features.py --execute
 ```
 
 **Expected Output**: You should see:
@@ -312,20 +312,7 @@ driver.close()
 
 ## Step 8: Verify End-to-End
 
-### 8a. Automated Verification (Recommended)
-
-```bash
-# Run the verification script
-python scripts/verify_setup.py
-```
-
-This will check:
-- Prerequisites (packages, .env, SQLite database)
-- Neo4j connection and GDS availability
-- Graph data (nodes, relationships, constraints)
-- GDS features (LIKELY_TO_ADOPT, CO_OCCURS_WITH)
-
-### 8b. Manual Verification Queries
+### 8a. Manual Verification Queries (Recommended)
 
 Run these verification queries to ensure everything works:
 
@@ -434,7 +421,7 @@ echo "MATCH (n) DETACH DELETE n;" | cypher-shell -u neo4j -p your_password -d do
 python scripts/bootstrap_graph.py --execute
 
 # 7. Compute GDS features
-python scripts/compute_advanced_gds_features.py --execute
+python scripts/compute_gds_features.py --execute
 
 # 8. Verify
 python3 -c "
@@ -474,9 +461,11 @@ You have successfully set up the graph if:
 
 Once setup is complete:
 
-1. **Read**: `docs/money_queries.md` - Understand the 4 high-value queries
+1. **Read**: `docs/money_queries.md` - Understand the 2 high-value GDS features
 2. **Explore**: `docs/money_queries.md` - High-value business queries
 3. **Query**: Use the example queries in `README.md` to explore the graph
+
+**Optional**: You can also run `python scripts/verify_setup.py` for automated verification, but the core scripts will fail fast if something is wrong, making this optional.
 
 ---
 

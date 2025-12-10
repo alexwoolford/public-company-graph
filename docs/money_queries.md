@@ -20,14 +20,14 @@ ORDER BY r.score DESC
 LIMIT 20
 ```
 
-**How it works**: 
+**How it works**:
 1. Creates a Technology-Technology graph where technologies are connected if they co-occur on domains
 2. For each technology, runs Personalized PageRank starting from that technology
 3. Finds domains that use similar technologies (but not the target technology)
 4. Ranks domains by their likelihood to adopt the target technology
 5. Stores top 50 predictions as `LIKELY_TO_ADOPT` relationships
 
-**Business Value**: 
+**Business Value**:
 - **Sales targeting**: "Which companies should we target for our product?"
 - **Market penetration**: "Who are the likely adopters of this technology?"
 - **Product marketing**: "Which domains are most likely to need our solution?"
@@ -112,7 +112,7 @@ LIMIT 20
 
 ## Related Documentation
 
-- **GDS Features**: See `docs/advanced_gds_features.md` for detailed implementation
+- **GDS Features**: See `docs/gds_features.md` for detailed implementation
 - **Graph Schema**: See `docs/graph_schema.md` for complete schema reference
 - **Setup Guide**: See `SETUP_GUIDE.md` for setup instructions
 - **Algorithm Coverage**: See `docs/GDS_ALGORITHM_COVERAGE.md` for algorithm details

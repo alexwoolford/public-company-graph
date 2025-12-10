@@ -62,7 +62,7 @@ python scripts/bootstrap_graph.py --execute
 
 ### 2. Compute GDS Features
 ```bash
-python scripts/compute_advanced_gds_features.py --execute
+python scripts/compute_gds_features.py --execute
 ```
 
 ---
@@ -88,4 +88,3 @@ See `SETUP_GUIDE.md` for complete setup instructions.
 ---
 
 *Last Updated: 2024-11-25*
-

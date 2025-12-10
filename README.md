@@ -4,11 +4,11 @@ A focused knowledge graph of domains and their technology stacks. Built with Neo
 
 ## What Problem Does This Solve?
 
-**For Software Companies**: Identify which companies are most likely to adopt your product by analyzing their current technology stacks and finding similar companies that already use your technology.
+**For Software Companies**: Identify which domains are most likely to adopt your product by analyzing their current technology stacks and finding similar domains that already use your technology.
 
 **For Product Teams**: Discover technology partnerships and integration opportunities by finding which technologies commonly appear together in real-world deployments.
 
-**For Sales Teams**: Target your outreach to companies that are most likely to need your solution based on their existing technology choices.
+**For Sales Teams**: Target your outreach to domains that are most likely to need your solution based on their existing technology choices.
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ A focused knowledge graph of domains and their technology stacks. Built with Neo
 
 3. **Compute GDS features**:
    ```bash
-   python scripts/compute_advanced_gds_features.py --execute
+   python scripts/compute_gds_features.py --execute
    ```
 
 **For detailed step-by-step instructions with verification, see [`SETUP_GUIDE.md`](SETUP_GUIDE.md)**
@@ -56,7 +56,7 @@ The bootstrap script loads:
 - Domain nodes and properties
 - Technology nodes and USES relationships
 
-This is all that's needed for the two useful GDS features.
+This is all that's needed for the two core GDS features (CO_OCCURS_WITH and LIKELY_TO_ADOPT).
 
 **Note**: A sample database (`data/domain_status.db`) is included in this repository to enable immediate exploration. To generate your own database with fresh data, use the [`domain_status`](https://github.com/alexwoolford/domain_status) tool.
 
@@ -86,14 +86,14 @@ This project implements **2 high-value Graph Data Science features**:
 
 - **High-Value Queries**: `docs/money_queries.md` - **START HERE** - 2 GDS features with business value
 - **Graph Schema**: `docs/graph_schema.md` - Complete schema reference
-- **GDS Features**: `docs/advanced_gds_features.md` - Detailed GDS feature documentation
+- **GDS Features**: `docs/gds_features.md` - Detailed GDS feature documentation
 
 ## Example Queries
 
-### Find companies using a specific technology
+### Find domains using a specific technology
 ```cypher
 MATCH (d:Domain)-[:USES]->(t:Technology {name: 'Shopify'})
-RETURN d
+RETURN d.final_domain
 ORDER BY d.final_domain
 ```
 
@@ -122,13 +122,14 @@ domain_status_graph/
 ├── data/
 │   └── domain_status.db        # Source SQLite database (included)
 ├── scripts/
-│   ├── bootstrap_graph.py      # ETL: SQLite → Neo4j
-│   ├── compute_advanced_gds_features.py  # GDS feature computation
-│   ├── collect_domains_parallel.py      # Domain collection (optional)
-│   └── verify_setup.py         # Setup verification script
+│   ├── bootstrap_graph.py      # ETL: SQLite → Neo4j (Domain, Technology)
+│   ├── compute_gds_features.py # GDS feature computation (CO_OCCURS_WITH, LIKELY_TO_ADOPT)
+│   ├── collect_domains.py      # Company domain collection (for company data pipeline)
+│   ├── create_description_embeddings.py  # Company description embeddings
+│   └── load_company_data.py    # Company nodes + HAS_DOMAIN relationships
 ├── docs/
 │   ├── graph_schema.md         # Complete schema documentation
-│   ├── advanced_gds_features.md # GDS features documentation
+│   ├── gds_features.md          # GDS features documentation
 │   ├── money_queries.md        # Business query examples
 │   ├── GDS_ALGORITHM_COVERAGE.md  # Algorithm coverage analysis
 │   └── README.md               # Documentation index

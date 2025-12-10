@@ -24,15 +24,10 @@ repos:
         args: [--fix=lf]
 
   # Gitleaks - Secret scanning (CRITICAL for security)
-  # Using custom script to properly scan staged file contents
-  - repo: local
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
     hooks:
       - id: gitleaks
-        name: Detect hardcoded secrets
-        entry: bash scripts/pre-commit-gitleaks.sh
-        language: system
-        pass_filenames: false
-        always_run: true
         description: "Detect hardcoded secrets and credentials in staged files"
 
   # Python code formatting with Black
