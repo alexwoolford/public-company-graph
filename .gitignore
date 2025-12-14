@@ -41,3 +41,7 @@ data/*.txt
 *.tmp
 *.bak
 *.cache
+data/.fingerprints_cache
+data/.geoip_cache
+data/.user_agent_cache
+data/.whois_cache
