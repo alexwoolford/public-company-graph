@@ -147,11 +147,11 @@ def main():
 
     if not embeddings_file.exists():
         print(f"⚠ Embeddings file not found: {embeddings_file}")
-        print("  Running create_description_embeddings.py...")
+        print("  Running create_company_embeddings.py...")
         if not run_script(
             CREATE_COMPANY_EMBEDDINGS_SCRIPT,
             execute=True,
-            description="Step 2.2: Create Description Embeddings",
+            description="Step 2.2: Create Company Description Embeddings",
         ):
             print("\n✗ Pipeline 2 failed at create_embeddings step")
             return

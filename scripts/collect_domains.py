@@ -231,17 +231,25 @@ def get_domain_from_finviz(session: requests.Session, ticker: str) -> DomainResu
     try:
         url = f"https://finviz.com/quote.ashx?t={ticker}"
         headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
         }
         response = session.get(url, headers=headers, timeout=5)
 
         if response.status_code == 200:
             import re
 
-            # Finviz has website in a table: <td>Website</td><td><a href="https://www.company.com">Website</a></td>
+            # Finviz has website in a table:
+            # <td>Website</td><td><a href="https://www.company.com">Website</a></td>
             # More specific pattern to avoid catching Yahoo Finance links
-            # Look for the Website label followed by a link that's NOT yahoo.com or finance.yahoo.com
-            website_pattern = r'Website["\']?\s*</td>\s*<td[^>]*>\s*<a[^>]*href=["\'](https?://(?:www\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+))'
+            # Look for the Website label followed by a link that's NOT yahoo.com
+            website_pattern = (
+                r'Website["\']?\s*</td>\s*<td[^>]*>\s*<a[^>]*href=["\']'
+                r"(https?://(?:www\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?"
+                r"(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+))"
+            )
             match = re.search(website_pattern, response.text, re.IGNORECASE)
             if match:
                 domain = normalize_domain(match.group(1))
@@ -605,7 +613,7 @@ def process_company(
 
 
 def main():
-    """Main entry point."""
+    """Run the domain collection script."""
     import argparse
 
     global _logger
@@ -737,7 +745,8 @@ def main():
                             elapsed = time.time() - start_time
                             rate = len(results) / elapsed if elapsed > 0 else 0
                             _logger.debug(
-                                f"Progress: {len(results)} companies found ({rate:.1f} companies/sec)"
+                                f"Progress: {len(results)} companies found "
+                                f"({rate:.1f} companies/sec)"
                             )
                 except TimeoutError:
                     _logger.warning(f"Timeout processing CIK {cik} - skipping")

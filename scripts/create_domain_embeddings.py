@@ -111,7 +111,7 @@ def update_domain_embeddings(
 
 
 def main():
-    """Main entry point."""
+    """Run the domain embeddings creation script."""
     parser = argparse.ArgumentParser(
         description="Create embeddings for Domain descriptions",
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Load Company nodes and relationships from public_company_domains.json and description_embeddings.json.
+Load Company nodes and relationships from JSON files.
 
 This script:
 1. Creates Company nodes with company information (CIK, ticker, name, description)
@@ -10,7 +10,8 @@ This script:
 Schema additions:
 - Nodes: Company (key=cik)
 - Relationships: (Company)-[:HAS_DOMAIN]->(Domain)
-- Properties: Company.description, Company.description_embedding, Company.embedding_model, Company.embedding_dimension
+- Properties: Company.description, Company.description_embedding,
+  Company.embedding_model, Company.embedding_dimension
 
 Dependencies:
 - Requires: data/public_company_domains.json (from collect_domains.py)
@@ -241,7 +242,8 @@ def create_has_domain_relationships(
             result.consume()
             total_created += len(batch)
             print(
-                f"  Created {total_created}/{len(companies_with_domains)} HAS_DOMAIN relationships..."
+                f"  Created {total_created}/{len(companies_with_domains)} "
+                f"HAS_DOMAIN relationships..."
             )
 
         print(f"✓ Created {total_created} HAS_DOMAIN relationships")
@@ -276,7 +278,8 @@ def dry_run_plan(companies_file: Path, embeddings_file: Optional[Path]):
     else:
         print(f"\nEmbeddings file: {embeddings_file} (not found)")
         print(
-            "  ERROR: Embeddings are required (core feature). Run create_company_embeddings.py first."
+            "  ERROR: Embeddings are required (core feature). "
+            "Run create_company_embeddings.py first."
         )
 
     print("\n" + "=" * 80)
@@ -285,6 +288,7 @@ def dry_run_plan(companies_file: Path, embeddings_file: Optional[Path]):
 
 
 def main():
+    """Run the company data loading script."""
     parser = argparse.ArgumentParser(description="Load Company nodes and relationships into Neo4j")
     parser.add_argument(
         "--execute", action="store_true", help="Actually load data (default is dry-run)"

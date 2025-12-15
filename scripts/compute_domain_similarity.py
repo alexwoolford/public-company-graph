@@ -149,9 +149,10 @@ def compute_domain_similarity(
             logger.warning("   ⚠ Not enough domains with embeddings to compute similarity")
             return
 
-        # Delete existing SIMILAR_DESCRIPTION relationships between Domains only (not Company-Company)
+        # Delete existing SIMILAR_DESCRIPTION relationships
+        # between Domains only (not Company-Company)
         logger.info(
-            "   Deleting existing SIMILAR_DESCRIPTION relationships (Domain-Domain only)..."
+            "   Deleting existing SIMILAR_DESCRIPTION relationships " "(Domain-Domain only)..."
         )
         with driver.session(database=database) as session:
             result = session.run(
@@ -164,7 +165,8 @@ def compute_domain_similarity(
             deleted = result.single()["deleted"]
             if deleted > 0:
                 logger.info(
-                    f"   ✓ Deleted {deleted} existing Domain-Domain SIMILAR_DESCRIPTION relationships"
+                    f"   ✓ Deleted {deleted} existing Domain-Domain "
+                    f"SIMILAR_DESCRIPTION relationships"
                 )
             else:
                 logger.info("   ✓ No Domain-Domain SIMILAR_DESCRIPTION relationships to delete")
@@ -303,7 +305,7 @@ def compute_domain_similarity(
 
 
 def main():
-    """Main entry point."""
+    """Run the domain similarity computation script."""
     parser = argparse.ArgumentParser(
         description="Compute Domain-Domain similarity based on description embeddings",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -388,7 +390,8 @@ def main():
             logger.info("  1. Load Domain nodes with description embeddings")
             logger.info("  2. Compute pairwise cosine similarity using NumPy")
             logger.info(
-                f"  3. Create SIMILAR_DESCRIPTION relationships (threshold: {args.similarity_threshold}, top-k: {args.top_k})"
+                f"  3. Create SIMILAR_DESCRIPTION relationships "
+                f"(threshold: {args.similarity_threshold}, top-k: {args.top_k})"
             )
             logger.info("")
             logger.info("To execute, run: python scripts/compute_domain_similarity.py --execute")

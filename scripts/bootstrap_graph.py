@@ -253,17 +253,20 @@ def dry_run_plan(db_path: Path):
 
     # Count domains with metadata
     cursor.execute(
-        "SELECT COUNT(DISTINCT final_domain) FROM url_status WHERE title IS NOT NULL AND title != ''"
+        "SELECT COUNT(DISTINCT final_domain) FROM url_status "
+        "WHERE title IS NOT NULL AND title != ''"
     )
     domains_with_title = cursor.fetchone()[0]
 
     cursor.execute(
-        "SELECT COUNT(DISTINCT final_domain) FROM url_status WHERE keywords IS NOT NULL AND keywords != ''"
+        "SELECT COUNT(DISTINCT final_domain) FROM url_status "
+        "WHERE keywords IS NOT NULL AND keywords != ''"
     )
     domains_with_keywords = cursor.fetchone()[0]
 
     cursor.execute(
-        "SELECT COUNT(DISTINCT final_domain) FROM url_status WHERE description IS NOT NULL AND description != ''"
+        "SELECT COUNT(DISTINCT final_domain) FROM url_status "
+        "WHERE description IS NOT NULL AND description != ''"
     )
     domains_with_description = cursor.fetchone()[0]
 
@@ -272,13 +275,12 @@ def dry_run_plan(db_path: Path):
     print("Data to be loaded:")
     print("-" * 70)
     print(f"  Domains: {domain_count:,}")
-    print(f"    - With title: {domains_with_title:,} ({domains_with_title/domain_count*100:.1f}%)")
-    print(
-        f"    - With keywords: {domains_with_keywords:,} ({domains_with_keywords/domain_count*100:.1f}%)"
-    )
-    print(
-        f"    - With description: {domains_with_description:,} ({domains_with_description/domain_count*100:.1f}%)"
-    )
+    title_pct = domains_with_title / domain_count * 100
+    print(f"    - With title: {domains_with_title:,} ({title_pct:.1f}%)")
+    keywords_pct = domains_with_keywords / domain_count * 100
+    print(f"    - With keywords: {domains_with_keywords:,} ({keywords_pct:.1f}%)")
+    desc_pct = domains_with_description / domain_count * 100
+    print(f"    - With description: {domains_with_description:,} ({desc_pct:.1f}%)")
     print(f"  Technologies: {tech_count:,}")
     print(f"  USES relationships: {uses_count:,}")
 
