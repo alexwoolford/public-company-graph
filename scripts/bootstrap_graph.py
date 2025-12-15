@@ -152,7 +152,9 @@ def load_domains(driver, db_path: str, batch_size: int = 1000, database: str = N
     print(f"✓ Loaded {len(domains)} Domain nodes")
 
 
-def load_technologies(driver, db_path: str, batch_size: int = 1000, database: str = None):
+def load_technologies(
+    driver, db_path: str, batch_size: int = 1000, database: str = None
+):
     """Load Technology nodes and USES relationships."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -184,7 +186,9 @@ def load_technologies(driver, db_path: str, batch_size: int = 1000, database: st
         SET t.category = tech.category,
             t.loaded_at = datetime()
         """
-        tech_data = [{"name": name, "category": category} for name, category in unique_techs]
+        tech_data = [
+            {"name": name, "category": category} for name, category in unique_techs
+        ]
         session.run(query, techs=tech_data)
         print(f"  ✓ Created {len(unique_techs)} Technology nodes")
 
@@ -204,7 +208,9 @@ def load_technologies(driver, db_path: str, batch_size: int = 1000, database: st
             session.run(query, batch=batch_data)
 
             if (i // batch_size + 1) % 10 == 0:
-                print(f"  Processed {i + len(batch)}/{len(tech_mappings)} relationships...")
+                print(
+                    f"  Processed {i + len(batch)}/{len(tech_mappings)} relationships..."
+                )
 
     print("✓ Loaded USES relationships")
 
@@ -292,7 +298,9 @@ def dry_run_plan(db_path: Path):
 
 def main():
     """Run the main ETL pipeline."""
-    parser = argparse.ArgumentParser(description="Bootstrap Neo4j graph from SQLite domain data")
+    parser = argparse.ArgumentParser(
+        description="Bootstrap Neo4j graph from SQLite domain data"
+    )
     parser.add_argument(
         "--execute",
         action="store_true",

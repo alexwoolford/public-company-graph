@@ -42,7 +42,9 @@ try:
     GDS_AVAILABLE = True
 except ImportError:
     GDS_AVAILABLE = False
-    print("WARNING: graphdatascience not installed. Install with: pip install graphdatascience")
+    print(
+        "WARNING: graphdatascience not installed. Install with: pip install graphdatascience"
+    )
 
 # Neo4j connection settings
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
@@ -64,7 +66,9 @@ def get_gds_client(database: str = None):
 
     # Create GDS client with Neo4j driver
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-    gds = GraphDataScience(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD), database=database)
+    gds = GraphDataScience(
+        NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD), database=database
+    )
     return gds, driver
 
 
@@ -121,11 +125,17 @@ def delete_relationships_in_batches(
             result = session.run(query)
             # Consume the result to execute the query
             result.consume()
-            logger.info(f"   ✓ Deleted {count_before:,} {rel_type} relationships in batches")
+            logger.info(
+                f"   ✓ Deleted {count_before:,} {rel_type} relationships in batches"
+            )
         except Exception as e:
             # Fallback to simple delete if IN TRANSACTIONS not supported (Neo4j < 5.x)
             error_str = str(e).lower()
-            if "in transactions" in error_str or "syntax" in error_str or "unknown" in error_str:
+            if (
+                "in transactions" in error_str
+                or "syntax" in error_str
+                or "unknown" in error_str
+            ):
                 logger.warning(
                     "   ⚠ IN TRANSACTIONS not supported, using simple DELETE (may be slow)"
                 )
@@ -191,7 +201,9 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None, logger=N
         )
         node_count = result["nodeCount"]
         rel_count = result["relationshipCount"]
-        logger.info(f"   ✓ Created graph: {node_count} nodes, {rel_count} relationships")
+        logger.info(
+            f"   ✓ Created graph: {node_count} nodes, {rel_count} relationships"
+        )
 
         # Delete existing LIKELY_TO_ADOPT relationships for idempotency
         delete_relationships_in_batches(
@@ -205,7 +217,9 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None, logger=N
         # Compute Personalized PageRank for all technologies (excluding ubiquitous ones)
         logger.info("   Computing Personalized PageRank for all technologies...")
         logger.info("   Using batched processing for better performance...")
-        logger.info("   Focusing on non-ubiquitous technologies (used by <50% of domains)...")
+        logger.info(
+            "   Focusing on non-ubiquitous technologies (used by <50% of domains)..."
+        )
 
         with driver.session(database=database) as session:
             # Get technologies that are not ubiquitous (used by <50% of domains)
@@ -308,7 +322,9 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None, logger=N
                     )
 
                 except Exception as e:
-                    logger.warning(f"   ⚠ Error processing batch {batch_start}-{batch_end}: {e}")
+                    logger.warning(
+                        f"   ⚠ Error processing batch {batch_start}-{batch_end}: {e}"
+                    )
                     # Clean up on error
                     try:
                         session.run(
@@ -322,7 +338,9 @@ def compute_tech_adoption_prediction(gds, driver, database: str = None, logger=N
                         pass
                     continue
 
-            logger.info(f"   ✓ Created {predictions_written} LIKELY_TO_ADOPT relationships")
+            logger.info(
+                f"   ✓ Created {predictions_written} LIKELY_TO_ADOPT relationships"
+            )
 
         # Drop projection
         G_tech.drop()
@@ -357,7 +375,9 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None, logger=Non
     logger.info("=" * 70)
     logger.info("   Use case: Partnership opportunities, integration targeting")
     logger.info("   Relationship: Technology-[CO_OCCURS_WITH {similarity}]->Technology")
-    logger.info("   Algorithm: GDS Node Similarity (Jaccard) on Technology-Technology graph")
+    logger.info(
+        "   Algorithm: GDS Node Similarity (Jaccard) on Technology-Technology graph"
+    )
 
     try:
         # Create Technology-Technology projection
@@ -380,7 +400,9 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None, logger=Non
         )
         node_count = result["nodeCount"]
         rel_count = result["relationshipCount"]
-        logger.info(f"   ✓ Created graph: {node_count} nodes, {rel_count} relationships")
+        logger.info(
+            f"   ✓ Created graph: {node_count} nodes, {rel_count} relationships"
+        )
 
         # Run Node Similarity on Technology nodes
         logger.info("   Computing Node Similarity (Jaccard) using GDS...")
@@ -417,7 +439,9 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None, logger=Non
 
                 if not (col1 and col2 and sim_col):
                     cols = list(similarity_result.columns)
-                    logger.error(f"   ✗ Error: Could not identify columns. Available: {cols}")
+                    logger.error(
+                        f"   ✗ Error: Could not identify columns. Available: {cols}"
+                    )
                     raise ValueError(
                         f"Unexpected DataFrame columns: {list(similarity_result.columns)}"
                     )
@@ -437,8 +461,12 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None, logger=Non
                 # Fallback for other result types
                 for row in similarity_result:
                     if isinstance(row, dict):
-                        node_id1 = int(row.get("nodeId1", row.get("node1", row.get("source"))))
-                        node_id2 = int(row.get("nodeId2", row.get("node2", row.get("target"))))
+                        node_id1 = int(
+                            row.get("nodeId1", row.get("node1", row.get("source")))
+                        )
+                        node_id2 = int(
+                            row.get("nodeId2", row.get("node2", row.get("target")))
+                        )
                         similarity = float(
                             row.get("similarity", row.get("score", row.get("weight")))
                         )
@@ -456,7 +484,9 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None, logger=Non
                     )
 
             # Write in batches using UNWIND (much faster than row-by-row)
-            logger.info(f"   Writing {len(batch)} relationships in batches of {batch_size}...")
+            logger.info(
+                f"   Writing {len(batch)} relationships in batches of {batch_size}..."
+            )
             for i in range(0, len(batch), batch_size):
                 batch_chunk = batch[i : i + batch_size]
                 result = session.run(
@@ -475,11 +505,17 @@ def compute_tech_affinity_bundling(gds, driver, database: str = None, logger=Non
                 created = result.single()["created"]
                 relationships_written += created
 
-                if (i + batch_size) % (batch_size * 10) == 0 or i + batch_size >= len(batch):
+                if (i + batch_size) % (batch_size * 10) == 0 or i + batch_size >= len(
+                    batch
+                ):
                     progress = min(i + batch_size, len(batch))
-                    logger.info(f"   Progress: {progress}/{len(batch)} relationships written...")
+                    logger.info(
+                        f"   Progress: {progress}/{len(batch)} relationships written..."
+                    )
 
-        logger.info(f"   ✓ Created {relationships_written} CO_OCCURS_WITH relationships")
+        logger.info(
+            f"   ✓ Created {relationships_written} CO_OCCURS_WITH relationships"
+        )
 
         # Drop projection
         G_tech.drop()
@@ -553,7 +589,9 @@ def compute_company_description_similarity(
                     f"Company-Company SIMILAR_DESCRIPTION relationships"
                 )
             else:
-                logger.info("   ✓ No Company-Company SIMILAR_DESCRIPTION relationships to delete")
+                logger.info(
+                    "   ✓ No Company-Company SIMILAR_DESCRIPTION relationships to delete"
+                )
 
         with driver.session(database=database) as session:
             # Load all companies with embeddings
@@ -580,12 +618,16 @@ def compute_company_description_similarity(
             logger.info(f"   Found {len(companies)} companies with embeddings")
 
             if len(companies) < 2:
-                logger.warning("   ⚠ Not enough companies with embeddings to compute similarity")
+                logger.warning(
+                    "   ⚠ Not enough companies with embeddings to compute similarity"
+                )
                 return
 
             # Compute pairwise cosine similarity
             logger.info("   Computing pairwise cosine similarity...")
-            logger.info(f"   Threshold: {similarity_threshold}, Top-K per company: {top_k}")
+            logger.info(
+                f"   Threshold: {similarity_threshold}, Top-K per company: {top_k}"
+            )
 
             # Convert to numpy array for efficient computation
             embeddings_matrix = np.array([c["embedding"] for c in companies])
@@ -601,7 +643,9 @@ def compute_company_description_similarity(
 
             # Collect all pairs above threshold that are in top-k for at least one company
             # Use a dict to deduplicate pairs and ensure consistent direction
-            logger.info("   Collecting similar pairs (top-k per company, above threshold)...")
+            logger.info(
+                "   Collecting similar pairs (top-k per company, above threshold)..."
+            )
             pairs = {}  # (cik1, cik2) -> score, where cik1 < cik2 (lexicographic order)
 
             for i, _company in enumerate(companies):
@@ -678,7 +722,9 @@ def compute_company_description_similarity(
                 )
                 relationships_written += len(batch)
 
-            logger.info(f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships")
+            logger.info(
+                f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships"
+            )
             logger.info("   ✓ Complete")
 
     except Exception as e:
@@ -728,7 +774,9 @@ def compute_company_technology_similarity(
         logger.info("=" * 70)
         logger.info("   Use case: Find companies with similar technology stacks")
         logger.info("   Relationship: Company-[SIMILAR_TECHNOLOGY {score}]->Company")
-        logger.info("   Algorithm: GDS Node Similarity (Jaccard) on Company-Technology graph")
+        logger.info(
+            "   Algorithm: GDS Node Similarity (Jaccard) on Company-Technology graph"
+        )
         return
 
     logger.info("")
@@ -737,7 +785,9 @@ def compute_company_technology_similarity(
     logger.info("=" * 70)
     logger.info("   Use case: Find companies with similar technology stacks")
     logger.info("   Relationship: Company-[SIMILAR_TECHNOLOGY {score}]->Company")
-    logger.info("   Algorithm: GDS Node Similarity (Jaccard) on Company-Technology graph")
+    logger.info(
+        "   Algorithm: GDS Node Similarity (Jaccard) on Company-Technology graph"
+    )
 
     try:
         # Delete existing SIMILAR_TECHNOLOGY relationships
@@ -752,7 +802,9 @@ def compute_company_technology_similarity(
             )
             deleted = result.single()["deleted"]
             if deleted > 0:
-                logger.info(f"   ✓ Deleted {deleted} existing SIMILAR_TECHNOLOGY relationships")
+                logger.info(
+                    f"   ✓ Deleted {deleted} existing SIMILAR_TECHNOLOGY relationships"
+                )
             else:
                 logger.info("   ✓ No SIMILAR_TECHNOLOGY relationships to delete")
 
@@ -837,7 +889,9 @@ def compute_company_technology_similarity(
                     (similarity_result[col1].isin(company_ids))
                     & (similarity_result[col2].isin(company_ids))
                 ]
-                logger.info(f"   Filtered to {len(similarity_result)} Company-Company similarities")
+                logger.info(
+                    f"   Filtered to {len(similarity_result)} Company-Company similarities"
+                )
             else:
                 logger.warning("   Could not identify node ID columns for filtering")
         else:
@@ -845,8 +899,12 @@ def compute_company_technology_similarity(
             filtered_results = []
             for row in similarity_result:
                 if isinstance(row, dict):
-                    node_id1 = int(row.get("nodeId1", row.get("node1", row.get("source", 0))))
-                    node_id2 = int(row.get("nodeId2", row.get("node2", row.get("target", 0))))
+                    node_id1 = int(
+                        row.get("nodeId1", row.get("node1", row.get("source", 0)))
+                    )
+                    node_id2 = int(
+                        row.get("nodeId2", row.get("node2", row.get("target", 0)))
+                    )
                 else:
                     node_id1 = int(row[0])
                     node_id2 = int(row[1])
@@ -855,7 +913,9 @@ def compute_company_technology_similarity(
                     filtered_results.append(row)
 
             similarity_result = filtered_results
-            logger.info(f"   Filtered to {len(similarity_result)} Company-Company similarities")
+            logger.info(
+                f"   Filtered to {len(similarity_result)} Company-Company similarities"
+            )
 
         # Write results as SIMILAR_TECHNOLOGY relationships using batch writes
         logger.info("   Writing SIMILAR_TECHNOLOGY relationships in batches...")
@@ -886,7 +946,9 @@ def compute_company_technology_similarity(
 
                 if not (col1 and col2 and sim_col):
                     cols = list(similarity_result.columns)
-                    logger.error(f"   ✗ Error: Could not identify columns. Available: {cols}")
+                    logger.error(
+                        f"   ✗ Error: Could not identify columns. Available: {cols}"
+                    )
                     raise ValueError(
                         f"Unexpected DataFrame columns: {list(similarity_result.columns)}"
                     )
@@ -906,8 +968,12 @@ def compute_company_technology_similarity(
                 # Fallback for other result types
                 for row in similarity_result:
                     if isinstance(row, dict):
-                        node_id1 = int(row.get("nodeId1", row.get("node1", row.get("source"))))
-                        node_id2 = int(row.get("nodeId2", row.get("node2", row.get("target"))))
+                        node_id1 = int(
+                            row.get("nodeId1", row.get("node1", row.get("source")))
+                        )
+                        node_id2 = int(
+                            row.get("nodeId2", row.get("node2", row.get("target")))
+                        )
                         similarity = float(
                             row.get("similarity", row.get("score", row.get("weight")))
                         )
@@ -967,7 +1033,9 @@ def compute_company_technology_similarity(
             batch = list(directed_batch.values())
 
             # Write in batches using UNWIND (much faster than row-by-row)
-            logger.info(f"   Writing {len(batch)} relationships in batches of {batch_size}...")
+            logger.info(
+                f"   Writing {len(batch)} relationships in batches of {batch_size}..."
+            )
             for i in range(0, len(batch), batch_size):
                 batch_chunk = batch[i : i + batch_size]
                 result = session.run(
@@ -987,11 +1055,17 @@ def compute_company_technology_similarity(
                 created = result.single()["created"]
                 relationships_written += created
 
-                if (i + batch_size) % (batch_size * 10) == 0 or i + batch_size >= len(batch):
+                if (i + batch_size) % (batch_size * 10) == 0 or i + batch_size >= len(
+                    batch
+                ):
                     progress = min(i + batch_size, len(batch))
-                    logger.info(f"   Progress: {progress}/{len(batch)} relationships written...")
+                    logger.info(
+                        f"   Progress: {progress}/{len(batch)} relationships written..."
+                    )
 
-        logger.info(f"   ✓ Created {relationships_written} SIMILAR_TECHNOLOGY relationships")
+        logger.info(
+            f"   ✓ Created {relationships_written} SIMILAR_TECHNOLOGY relationships"
+        )
 
         # Drop projection
         G_company_tech.drop()
@@ -1031,7 +1105,9 @@ def cleanup_leftover_graphs(gds, database: str = None, logger=None):
 
 def main():
     """Run main GDS computation pipeline."""
-    parser = argparse.ArgumentParser(description="Compute GDS features using Python GDS client")
+    parser = argparse.ArgumentParser(
+        description="Compute GDS features using Python GDS client"
+    )
     parser.add_argument(
         "--execute",
         action="store_true",
@@ -1093,9 +1169,13 @@ def main():
             print("This script will compute the following features:")
             print()
             print("1. Technology Adopter Prediction (Technology → Domain)")
-            print("   - For each technology, predicts top 50 domains likely to adopt it")
+            print(
+                "   - For each technology, predicts top 50 domains likely to adopt it"
+            )
             print("   - Creates: Domain-[LIKELY_TO_ADOPT {score}]->Technology")
-            print("   - Use case: Software companies finding customers for their product")
+            print(
+                "   - Use case: Software companies finding customers for their product"
+            )
             print(
                 "   - Note: This could be flipped to answer 'which techs will this domain adopt?'"
             )
@@ -1107,7 +1187,9 @@ def main():
             print("3. Company Description Similarity (Cosine Similarity)")
             print("   - Finds companies with similar business descriptions")
             print("   - Creates: Company-[SIMILAR_DESCRIPTION {score}]->Company")
-            print("   - Note: Requires Company nodes with description_embedding property")
+            print(
+                "   - Note: Requires Company nodes with description_embedding property"
+            )
             print()
             print("4. Company Technology Similarity (Jaccard Similarity)")
             print("   - Finds companies with similar technology stacks")
@@ -1202,7 +1284,9 @@ def main():
                 RETURN count(r) AS tech_affinities
             """
             )
-            logger.info(f"Technology Affinity Relationships: {result.single()['tech_affinities']}")
+            logger.info(
+                f"Technology Affinity Relationships: {result.single()['tech_affinities']}"
+            )
 
             result = session.run(
                 """
@@ -1220,7 +1304,9 @@ def main():
                 RETURN count(r) AS tech_similarities
             """
             )
-            logger.info(f"Company Technology Similarities: {result.single()['tech_similarities']}")
+            logger.info(
+                f"Company Technology Similarities: {result.single()['tech_similarities']}"
+            )
 
     finally:
         driver.close()

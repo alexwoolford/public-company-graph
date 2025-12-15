@@ -7,8 +7,8 @@ This document provides **2 high-value Graph Data Science features** that are ful
 ## ✅ Fully Supported Features
 
 ### 1. Technology Adopter Prediction
-**Status**: ✅ Fully Supported via LIKELY_TO_ADOPT  
-**Graph Value**: HIGH - GDS Personalized PageRank  
+**Status**: ✅ Fully Supported via LIKELY_TO_ADOPT
+**Graph Value**: HIGH - GDS Personalized PageRank
 **Algorithm**: Personalized PageRank on Technology-Technology co-occurrence graph
 
 **What it does**: For each technology, predicts which domains are most likely to adopt it. This is the primary use case for software companies: "Who should we target for our product?"
@@ -45,8 +45,8 @@ LIMIT 20
 ---
 
 ### 2. Technology Co-Occurrence & Affinity
-**Status**: ✅ Fully Supported via CO_OCCURS_WITH  
-**Graph Value**: HIGH - GDS Node Similarity (Jaccard)  
+**Status**: ✅ Fully Supported via CO_OCCURS_WITH
+**Graph Value**: HIGH - GDS Node Similarity (Jaccard)
 **Algorithm**: Node Similarity on Technology-Technology co-occurrence graph
 
 **What it does**: Identifies technology pairs that commonly appear together in real-world deployments (e.g., WordPress + MySQL, React + Next.js).

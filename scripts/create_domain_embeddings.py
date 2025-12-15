@@ -221,7 +221,9 @@ def main():
                 f"  ~${new_embeddings * 0.00002:.2f} for ~{int(new_embeddings)} new embeddings"
             )
             logger.info("")
-            logger.info("To execute, run: python scripts/create_domain_embeddings.py --execute")
+            logger.info(
+                "To execute, run: python scripts/create_domain_embeddings.py --execute"
+            )
             logger.info("=" * 80)
             return
 

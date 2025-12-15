@@ -113,7 +113,9 @@ def load_companies(
     embeddings: Dict[str, List[float]] = {}
     if not embeddings_file or not embeddings_file.exists():
         print(f"ERROR: Embeddings file not found: {embeddings_file}")
-        print("Embeddings are required (core feature). Run create_company_embeddings.py first.")
+        print(
+            "Embeddings are required (core feature). Run create_company_embeddings.py first."
+        )
         return
 
     print(f"Loading embeddings from: {embeddings_file}")
@@ -164,10 +166,16 @@ def load_companies(
 
     if not execute:
         print(f"\nDRY RUN: Would load {len(companies_to_load)} Company nodes")
-        companies_with_embeddings = sum(1 for c in companies_to_load if c["description_embedding"])
-        print(f"  {companies_with_embeddings} companies would have embeddings (required)")
+        companies_with_embeddings = sum(
+            1 for c in companies_to_load if c["description_embedding"]
+        )
+        print(
+            f"  {companies_with_embeddings} companies would have embeddings (required)"
+        )
         if companies_with_embeddings == 0:
-            print("  WARNING: No embeddings found. Embeddings are required (core feature).")
+            print(
+                "  WARNING: No embeddings found. Embeddings are required (core feature)."
+            )
         return
 
     # Load Company nodes in batches
@@ -215,12 +223,16 @@ def create_has_domain_relationships(
         execute: If False, only print plan
     """
     # Filter to companies with domains
-    companies_with_domains = [c for c in companies_data if c.get("domain") and c["domain"]]
+    companies_with_domains = [
+        c for c in companies_data if c.get("domain") and c["domain"]
+    ]
 
     print(f"Found {len(companies_with_domains)} companies with domains")
 
     if not execute:
-        print(f"\nDRY RUN: Would create {len(companies_with_domains)} HAS_DOMAIN relationships")
+        print(
+            f"\nDRY RUN: Would create {len(companies_with_domains)} HAS_DOMAIN relationships"
+        )
         return
 
     # Create relationships in batches
@@ -289,7 +301,9 @@ def dry_run_plan(companies_file: Path, embeddings_file: Optional[Path]):
 
 def main():
     """Run the company data loading script."""
-    parser = argparse.ArgumentParser(description="Load Company nodes and relationships into Neo4j")
+    parser = argparse.ArgumentParser(
+        description="Load Company nodes and relationships into Neo4j"
+    )
     parser.add_argument(
         "--execute", action="store_true", help="Actually load data (default is dry-run)"
     )

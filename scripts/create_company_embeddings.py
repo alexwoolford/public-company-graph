@@ -177,7 +177,9 @@ def create_embeddings_for_descriptions(
     return embeddings
 
 
-def merge_embeddings_into_data(data: List[Dict], embeddings: Dict[str, List[float]]) -> List[Dict]:
+def merge_embeddings_into_data(
+    data: List[Dict], embeddings: Dict[str, List[float]]
+) -> List[Dict]:
     """Merge embeddings back into the original data structure."""
     enriched = []
     missing_count = 0
@@ -298,7 +300,9 @@ def main():
         logger.info("=" * 80)
         logger.info("This script will:")
         logger.info(f"  1. Read {args.input_file}")
-        logger.info(f"  2. Create embeddings for {entries_with_descriptions} descriptions")
+        logger.info(
+            f"  2. Create embeddings for {entries_with_descriptions} descriptions"
+        )
         logger.info(f"  3. Use OpenAI model: {args.model}")
         logger.info(f"  4. Save embeddings to: {args.embeddings_file}")
         logger.info(f"  5. Merge embeddings into: {output_file}")
@@ -307,7 +311,9 @@ def main():
         cost = entries_with_descriptions * 0.00002
         logger.info(f"  ~${cost:.2f} for {entries_with_descriptions} embeddings")
         logger.info("")
-        logger.info("To execute, run: python scripts/" "create_company_embeddings.py --execute")
+        logger.info(
+            "To execute, run: python scripts/" "create_company_embeddings.py --execute"
+        )
         logger.info("=" * 80)
         return
 

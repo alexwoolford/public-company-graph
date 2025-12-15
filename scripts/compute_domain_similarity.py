@@ -86,7 +86,9 @@ def delete_relationships_in_batches(
         if deleted > 0:
             logger.info(f"   ✓ Deleted {deleted} existing {rel_type} relationships")
             # Recursively delete remaining relationships
-            delete_relationships_in_batches(driver, rel_type, batch_size, database, logger)
+            delete_relationships_in_batches(
+                driver, rel_type, batch_size, database, logger
+            )
         else:
             logger.info(f"   ✓ No {rel_type} relationships to delete")
 
@@ -146,13 +148,16 @@ def compute_domain_similarity(
         logger.info(f"   Found {domain_count} domains with description embeddings")
 
         if domain_count < 2:
-            logger.warning("   ⚠ Not enough domains with embeddings to compute similarity")
+            logger.warning(
+                "   ⚠ Not enough domains with embeddings to compute similarity"
+            )
             return
 
         # Delete existing SIMILAR_DESCRIPTION relationships
         # between Domains only (not Company-Company)
         logger.info(
-            "   Deleting existing SIMILAR_DESCRIPTION relationships " "(Domain-Domain only)..."
+            "   Deleting existing SIMILAR_DESCRIPTION relationships "
+            "(Domain-Domain only)..."
         )
         with driver.session(database=database) as session:
             result = session.run(
@@ -169,7 +174,9 @@ def compute_domain_similarity(
                     f"SIMILAR_DESCRIPTION relationships"
                 )
             else:
-                logger.info("   ✓ No Domain-Domain SIMILAR_DESCRIPTION relationships to delete")
+                logger.info(
+                    "   ✓ No Domain-Domain SIMILAR_DESCRIPTION relationships to delete"
+                )
 
         with driver.session(database=database) as session:
             # Load all domains with embeddings
@@ -196,12 +203,16 @@ def compute_domain_similarity(
             logger.info(f"   Found {len(domains)} domains with embeddings")
 
             if len(domains) < 2:
-                logger.warning("   ⚠ Not enough domains with embeddings to compute similarity")
+                logger.warning(
+                    "   ⚠ Not enough domains with embeddings to compute similarity"
+                )
                 return
 
             # Compute pairwise cosine similarity
             logger.info("   Computing pairwise cosine similarity...")
-            logger.info(f"   Threshold: {similarity_threshold}, Top-K per domain: {top_k}")
+            logger.info(
+                f"   Threshold: {similarity_threshold}, Top-K per domain: {top_k}"
+            )
 
             # Convert to numpy array for efficient computation
             embeddings_matrix = np.array([d["embedding"] for d in domains])
@@ -217,8 +228,12 @@ def compute_domain_similarity(
 
             # Collect all pairs above threshold that are in top-k for at least one domain
             # Use a set to deduplicate pairs and ensure consistent direction
-            logger.info("   Collecting similar pairs (top-k per domain, above threshold)...")
-            pairs = {}  # (domain1, domain2) -> score, where domain1 < domain2 (lexicographic order)
+            logger.info(
+                "   Collecting similar pairs (top-k per domain, above threshold)..."
+            )
+            pairs = (
+                {}
+            )  # (domain1, domain2) -> score, where domain1 < domain2 (lexicographic order)
 
             for i, _domain in enumerate(domains):
                 # Get similarities for this domain (excluding self-similarity)
@@ -294,7 +309,9 @@ def compute_domain_similarity(
                 )
                 relationships_written += len(batch)
 
-        logger.info(f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships")
+        logger.info(
+            f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships"
+        )
         logger.info("   ✓ Complete")
 
     except Exception as e:
@@ -394,7 +411,9 @@ def main():
                 f"(threshold: {args.similarity_threshold}, top-k: {args.top_k})"
             )
             logger.info("")
-            logger.info("To execute, run: python scripts/compute_domain_similarity.py --execute")
+            logger.info(
+                "To execute, run: python scripts/compute_domain_similarity.py --execute"
+            )
             logger.info("=" * 80)
             return
 
