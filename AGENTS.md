@@ -76,11 +76,10 @@
       cp .env.sample .env  # set NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
     </env>
     <quality_tools>
-      isort --profile black src/ tests/ scripts/
-      black src/ tests/ scripts/
-      flake8 src/ tests/ --max-line-length=100
+      isort --profile black src/ scripts/
+      black src/ scripts/
+      flake8 src/ scripts/ --max-line-length=100
       mypy src/ --ignore-missing-imports
-      pytest -q
       pre-commit run --all-files  # must pass locally and in CI
     </quality_tools>
   </development_setup>

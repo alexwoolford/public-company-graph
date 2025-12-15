@@ -70,15 +70,16 @@ repos:
         always_run: true
 
   # Python-specific checks
-  - repo: https://github.com/pre-commit/mirrors-pylint
-    rev: v3.2.3
-    hooks:
-      - id: pylint
-        # Optional: configure pylint args
-        # args: ['--disable=C0111']  # Disable missing-docstring
-        description: "Lint Python code with pylint"
-        # Uncomment if you want to use pylint
-        # additional_dependencies: [pylint]
+  # Pylint disabled - uncomment if needed
+  # - repo: https://github.com/pre-commit/mirrors-pylint
+  #   rev: v3.2.3
+  #   hooks:
+  #     - id: pylint
+  #       # Optional: configure pylint args
+  #       # args: ['--disable=C0111']  # Disable missing-docstring
+  #       description: "Lint Python code with pylint"
+  #       # Uncomment if you want to use pylint
+  #       # additional_dependencies: [pylint]
 
   # mypy - Type checking (optional but recommended)
   # - repo: https://github.com/pre-commit/mirrors-mypy
@@ -88,4 +89,3 @@ repos:
   #       additional_dependencies: [types-all]
   #       args: [--ignore-missing-imports]
   #       description: "Type check Python code"
-

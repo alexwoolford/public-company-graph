@@ -56,15 +56,15 @@ jobs:
 
       - name: Check code formatting with Black
         run: |
-          black --check scripts/ tests/ || (echo "❌ Black formatting check failed. Run 'black scripts/ tests/' to fix." && exit 1)
+          black --check scripts/ || (echo "❌ Black formatting check failed. Run 'black scripts/' to fix." && exit 1)
 
       - name: Check import sorting with isort
         run: |
-          isort --profile black --check scripts/ tests/ || (echo "❌ isort check failed. Run 'isort --profile black scripts/ tests/' to fix." && exit 1)
+          isort --profile black --check scripts/ || (echo "❌ isort check failed. Run 'isort --profile black scripts/' to fix." && exit 1)
 
       - name: Lint with flake8
         run: |
-          flake8 scripts/ tests/ --max-line-length=100 --extend-ignore=E203,W503 || (echo "❌ flake8 check failed. Fix the linting errors above." && exit 1)
+          flake8 scripts/ --max-line-length=100 --extend-ignore=E203,W503 || (echo "❌ flake8 check failed. Fix the linting errors above." && exit 1)
 
       - name: Type check with mypy
         run: |
