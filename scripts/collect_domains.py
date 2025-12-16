@@ -76,8 +76,7 @@ _rate_limits = {
     "finviz": {
         "lock": Lock(),
         "last_call": 0,
-        "min_interval": 1.0
-        / 5.0,  # Finviz: No official API, web scraping. 5 req/sec is safe.
+        "min_interval": 1.0 / 5.0,  # Finviz: No official API, web scraping. 5 req/sec is safe.
     },
     "finnhub": {
         "lock": Lock(),
@@ -170,9 +169,7 @@ def is_infrastructure_domain(domain: str) -> bool:
     ]
 
     # Check patterns
-    if any(
-        re.search(pattern, domain, re.IGNORECASE) for pattern in infrastructure_patterns
-    ):
+    if any(re.search(pattern, domain, re.IGNORECASE) for pattern in infrastructure_patterns):
         return True
 
     # Known infrastructure domains
@@ -306,9 +303,7 @@ def get_domain_from_sec(
                     # e.g., "investor.apple.com" -> "apple.com"
                     if domain.startswith("investor."):
                         domain = domain.replace("investor.", "")
-                    return DomainResult(
-                        domain, "sec_edgar", 0.75, {"field": "investorWebsite"}
-                    )
+                    return DomainResult(domain, "sec_edgar", 0.75, {"field": "investorWebsite"})
     except Exception as e:
         if _logger:
             _logger.debug(f"SEC error for {ticker} (CIK {cik}): {e}")
@@ -390,9 +385,7 @@ def collect_domains(
         futures = {
             executor.submit(get_domain_from_yfinance, ticker, company_name): "yfinance",
             executor.submit(get_domain_from_finviz, session, ticker): "finviz",
-            executor.submit(
-                get_domain_from_sec, session, cik, ticker, company_name
-            ): "sec",
+            executor.submit(get_domain_from_sec, session, cik, ticker, company_name): "sec",
             executor.submit(get_domain_from_finnhub, ticker): "finnhub",
         }
 
@@ -432,9 +425,7 @@ def collect_domains(
                                 break
             except TimeoutError:
                 if _logger:
-                    _logger.debug(
-                        f"Timeout collecting domain for {ticker} from one source"
-                    )
+                    _logger.debug(f"Timeout collecting domain for {ticker} from one source")
             except Exception as e:
                 if _logger:
                     _logger.debug(f"Error collecting domain for {ticker}: {e}")
@@ -460,17 +451,14 @@ def collect_domains(
             domain_votes[result.domain].append(result.source)
 
     # Collect descriptions from all sources (weighted by source reliability)
-    description_scores: Dict[str, Tuple[float, str]] = (
-        {}
-    )  # description -> (score, source)
+    description_scores: Dict[str, Tuple[float, str]] = {}  # description -> (score, source)
     for result in results:
         if result.description:
             weight = source_weights.get(result.source, 1.0)
             # Use existing score if description already seen, otherwise add new
             if result.description in description_scores:
                 description_scores[result.description] = (
-                    description_scores[result.description][0]
-                    + weight * result.confidence,
+                    description_scores[result.description][0] + weight * result.confidence,
                     description_scores[result.description][1],  # Keep first source
                 )
             else:
@@ -720,9 +708,7 @@ def main():
             _logger.warning(f"Could not load existing results: {e}")
 
     # Filter companies to process
-    to_process = {
-        cik: info for cik, info in companies.items() if cik not in existing_results
-    }
+    to_process = {cik: info for cik, info in companies.items() if cik not in existing_results}
 
     if args.max_companies:
         to_process = dict(list(to_process.items())[: args.max_companies])

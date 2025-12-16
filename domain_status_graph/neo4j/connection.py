@@ -5,13 +5,10 @@ Provides utilities for creating and managing Neo4j driver connections.
 """
 
 import logging
-import os
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+if TYPE_CHECKING:
+    from neo4j import Driver
 
 # Try to import Neo4j driver
 try:
@@ -20,6 +17,7 @@ try:
     NEO4J_AVAILABLE = True
 except ImportError:
     NEO4J_AVAILABLE = False
+    GraphDatabase = None  # type: ignore
 
 from domain_status_graph.config import (
     get_neo4j_database,
@@ -31,7 +29,7 @@ from domain_status_graph.config import (
 logger = logging.getLogger(__name__)
 
 
-def get_neo4j_driver(database: Optional[str] = None):
+def get_neo4j_driver(database: Optional[str] = None) -> "Driver":
     """
     Get Neo4j driver connection.
 
@@ -59,7 +57,7 @@ def get_neo4j_driver(database: Optional[str] = None):
     return driver
 
 
-def verify_connection(driver) -> bool:
+def verify_connection(driver: "Driver") -> bool:
     """
     Verify Neo4j connection is working.
 

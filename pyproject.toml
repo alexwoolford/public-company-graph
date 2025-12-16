@@ -77,6 +77,10 @@ profile = "black"
 line_length = 100
 known_first_party = ["domain_status_graph"]
 
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203"]  # Conflicts with Black's slice formatting
+
 [tool.mypy]
 python_version = "3.13"
 warn_return_any = true

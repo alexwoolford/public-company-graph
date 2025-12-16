@@ -12,7 +12,6 @@ No external vector databases needed - Neo4j stores embeddings, similarity comput
 
 import logging
 import time
-from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
 try:
@@ -151,7 +150,7 @@ def create_embeddings_for_nodes(
                 created += 1
         else:
             failed += 1
-            logger.warning(f"Failed to create embedding for {node_label} {key}")
+            logger.warning(f"Failed to create embedding for {node_label} {cache_key}")
 
         # Save cache periodically (only if new embeddings were created)
         if created > 0 and created % 100 == 0:

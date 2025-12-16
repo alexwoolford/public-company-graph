@@ -2,12 +2,6 @@
 Unit tests for domain_status_graph.embeddings.cache module.
 """
 
-import json
-import tempfile
-from pathlib import Path
-
-import pytest
-
 from domain_status_graph.embeddings.cache import EmbeddingCache, compute_text_hash
 
 

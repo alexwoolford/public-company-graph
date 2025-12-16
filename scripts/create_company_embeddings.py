@@ -97,11 +97,6 @@ def create_embeddings_for_descriptions(
     Returns a dictionary mapping CIK -> embedding vector.
     """
     try:
-        from openai import OpenAI
-    except ImportError:
-        raise ImportError("openai not available. Install with: pip install openai")
-
-    try:
         client = get_openai_client()
     except ValueError as e:
         raise ValueError(str(e))

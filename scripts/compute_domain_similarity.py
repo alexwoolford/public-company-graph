@@ -16,17 +16,12 @@ Usage:
 import argparse
 import logging
 import sys
-from pathlib import Path
-
-import numpy as np
 
 from domain_status_graph.cli import (
-    add_execute_argument,
     get_driver_and_database,
     setup_logging,
     verify_neo4j_connection,
 )
-from domain_status_graph.neo4j import delete_relationships_in_batches
 
 
 def compute_domain_similarity(

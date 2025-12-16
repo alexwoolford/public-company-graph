@@ -28,8 +28,8 @@ from domain_status_graph.embeddings import (
     EMBEDDING_DIMENSION,
     EMBEDDING_MODEL,
     EmbeddingCache,
-    create_embeddings_for_nodes,
     create_embedding,
+    create_embeddings_for_nodes,
     get_openai_client,
     suppress_http_logging,
 )

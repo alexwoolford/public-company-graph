@@ -63,9 +63,7 @@ def run_script(script_path: Path, execute: bool = False, description: str = ""):
 
 def main():
     """Run main orchestration function."""
-    parser = argparse.ArgumentParser(
-        description="Run all data pipelines in the correct order"
-    )
+    parser = argparse.ArgumentParser(description="Run all data pipelines in the correct order")
     parser.add_argument(
         "--execute",
         action="store_true",
@@ -89,14 +87,10 @@ def main():
             "  - create_company_embeddings.py - Create embeddings for "
             "Company descriptions (if needed)"
         )
-        print(
-            "  - load_company_data.py - Load Company nodes and HAS_DOMAIN relationships"
-        )
+        print("  - load_company_data.py - Load Company nodes and HAS_DOMAIN relationships")
         print()
         print("Step 3: Domain Embeddings")
-        print(
-            "  - create_domain_embeddings.py - Create embeddings for Domain descriptions"
-        )
+        print("  - create_domain_embeddings.py - Create embeddings for Domain descriptions")
         print("  - compute_domain_similarity.py - Compute Domain-Domain similarity")
         print()
         print("Step 4: Compute GDS Features")
@@ -149,9 +143,7 @@ def main():
             print("\n✗ Pipeline 2 failed at collect_domains step")
             return
     else:
-        print(
-            f"✓ Companies file exists: {companies_file} (skipping collect_domains.py)"
-        )
+        print(f"✓ Companies file exists: {companies_file} (skipping collect_domains.py)")
 
     if not embeddings_file.exists():
         print(f"⚠ Embeddings file not found: {embeddings_file}")
@@ -216,9 +208,7 @@ def main():
     print("\n" + "=" * 70)
     print("STEP 4: Compute GDS Features")
     print("=" * 70)
-    print(
-        "Computing all GDS features: Technology adoption, affinity, and company similarity"
-    )
+    print("Computing all GDS features: Technology adoption, affinity, and company similarity")
 
     if not run_script(
         COMPUTE_GDS_SCRIPT,

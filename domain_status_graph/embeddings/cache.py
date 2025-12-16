@@ -91,7 +91,8 @@ class EmbeddingCache:
 
         if old_format_count > 0:
             logger.info(
-                f"Migrating cache: removing {old_format_count} old-format keys (will be recreated with property-specific keys)"
+                f"Migrating cache: removing {old_format_count} old-format keys "
+                "(will be recreated with property-specific keys)"
             )
             # Keep only new-format keys (property-specific)
             self._cache = {k: v for k, v in self._cache.items() if ":" in k}

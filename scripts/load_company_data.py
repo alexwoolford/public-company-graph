@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from domain_status_graph.cli import (
-    add_execute_argument,
     get_driver_and_database,
     setup_logging,
     verify_neo4j_connection,
