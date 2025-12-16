@@ -25,60 +25,17 @@ Usage:
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Try to import Neo4j driver
-try:
-    from neo4j import GraphDatabase
-
-    NEO4J_AVAILABLE = True
-except ImportError:
-    NEO4J_AVAILABLE = False
-    print("WARNING: neo4j driver not installed. Install with: pip install neo4j")
-
-# Neo4j connection settings
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "domain")
-
-if not NEO4J_PASSWORD:
-    print("ERROR: NEO4J_PASSWORD not set in .env file")
-    sys.exit(1)
-
-
-def get_neo4j_driver():
-    """Get Neo4j driver connection."""
-    if not NEO4J_AVAILABLE:
-        raise ImportError("neo4j driver not available")
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-
-def create_constraints(driver, database: str = None):
-    """Create constraints and indexes for Company nodes."""
-    with driver.session(database=database) as session:
-        constraints = [
-            # Company constraints
-            "CREATE CONSTRAINT company_cik IF NOT EXISTS FOR (c:Company) REQUIRE c.cik IS UNIQUE",
-            "CREATE INDEX company_ticker IF NOT EXISTS FOR (c:Company) ON (c.ticker)",
-        ]
-
-        for constraint in constraints:
-            try:
-                session.run(constraint)
-                print(f"✓ Created: {constraint[:50]}...")
-            except Exception as e:
-                # Constraint might already exist
-                if "already exists" not in str(e).lower():
-                    print(f"⚠ Warning creating constraint: {e}")
+from domain_status_graph.cli import (
+    add_execute_argument,
+    get_driver_and_database,
+    setup_logging,
+    verify_neo4j_connection,
+)
+from domain_status_graph.neo4j import create_company_constraints
 
 
 def load_companies(
@@ -113,9 +70,7 @@ def load_companies(
     embeddings: Dict[str, List[float]] = {}
     if not embeddings_file or not embeddings_file.exists():
         print(f"ERROR: Embeddings file not found: {embeddings_file}")
-        print(
-            "Embeddings are required (core feature). Run create_company_embeddings.py first."
-        )
+        print("Embeddings are required (core feature). Run create_company_embeddings.py first.")
         return
 
     print(f"Loading embeddings from: {embeddings_file}")
@@ -166,16 +121,10 @@ def load_companies(
 
     if not execute:
         print(f"\nDRY RUN: Would load {len(companies_to_load)} Company nodes")
-        companies_with_embeddings = sum(
-            1 for c in companies_to_load if c["description_embedding"]
-        )
-        print(
-            f"  {companies_with_embeddings} companies would have embeddings (required)"
-        )
+        companies_with_embeddings = sum(1 for c in companies_to_load if c["description_embedding"])
+        print(f"  {companies_with_embeddings} companies would have embeddings (required)")
         if companies_with_embeddings == 0:
-            print(
-                "  WARNING: No embeddings found. Embeddings are required (core feature)."
-            )
+            print("  WARNING: No embeddings found. Embeddings are required (core feature).")
         return
 
     # Load Company nodes in batches
@@ -223,16 +172,12 @@ def create_has_domain_relationships(
         execute: If False, only print plan
     """
     # Filter to companies with domains
-    companies_with_domains = [
-        c for c in companies_data if c.get("domain") and c["domain"]
-    ]
+    companies_with_domains = [c for c in companies_data if c.get("domain") and c["domain"]]
 
     print(f"Found {len(companies_with_domains)} companies with domains")
 
     if not execute:
-        print(
-            f"\nDRY RUN: Would create {len(companies_with_domains)} HAS_DOMAIN relationships"
-        )
+        print(f"\nDRY RUN: Would create {len(companies_with_domains)} HAS_DOMAIN relationships")
         return
 
     # Create relationships in batches
@@ -301,9 +246,7 @@ def dry_run_plan(companies_file: Path, embeddings_file: Optional[Path]):
 
 def main():
     """Run the company data loading script."""
-    parser = argparse.ArgumentParser(
-        description="Load Company nodes and relationships into Neo4j"
-    )
+    parser = argparse.ArgumentParser(description="Load Company nodes and relationships into Neo4j")
     parser.add_argument(
         "--execute", action="store_true", help="Actually load data (default is dry-run)"
     )
@@ -328,46 +271,52 @@ def main():
 
     args = parser.parse_args()
 
+    logger = setup_logging("load_company_data", execute=args.execute)
+
     if not args.execute:
         dry_run_plan(args.companies_file, args.embeddings_file)
         return
 
-    print("=" * 80)
-    print("Loading Company Data into Neo4j")
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info("Loading Company Data into Neo4j")
+    logger.info("=" * 80)
 
-    driver = get_neo4j_driver()
+    driver, database = get_driver_and_database(logger)
 
     try:
+        # Test connection
+        if not verify_neo4j_connection(driver, database, logger):
+            sys.exit(1)
+
         # Create constraints
-        print("\n1. Creating constraints...")
-        create_constraints(driver, database=NEO4J_DATABASE)
+        logger.info("\n1. Creating constraints...")
+        create_company_constraints(driver, database=database)
 
         # Load Company nodes
-        print("\n2. Loading Company nodes...")
+        logger.info("\n2. Loading Company nodes...")
         companies_data = load_companies(
             driver,
             args.companies_file,
             args.embeddings_file,
             batch_size=args.batch_size,
-            database=NEO4J_DATABASE,
+            database=database,
             execute=True,
         )
 
         # Create HAS_DOMAIN relationships
         if companies_data:
-            print("\n3. Creating HAS_DOMAIN relationships...")
+            logger.info("\n3. Creating HAS_DOMAIN relationships...")
             create_has_domain_relationships(
                 driver,
                 companies_data,
                 batch_size=args.batch_size,
-                database=NEO4J_DATABASE,
+                database=database,
                 execute=True,
             )
 
-        print("\n" + "=" * 80)
-        print("✓ Complete!")
-        print("=" * 80)
+        logger.info("\n" + "=" * 80)
+        logger.info("✓ Complete!")
+        logger.info("=" * 80)
 
     finally:
         driver.close()

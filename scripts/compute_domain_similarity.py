@@ -15,82 +15,18 @@ Usage:
 
 import argparse
 import logging
-import os
 import sys
-import time
 from pathlib import Path
 
-from dotenv import load_dotenv
+import numpy as np
 
-# Try to import Neo4j driver
-try:
-    from neo4j import GraphDatabase
-
-    NEO4J_AVAILABLE = True
-except ImportError:
-    NEO4J_AVAILABLE = False
-    print("WARNING: neo4j driver not installed. Install with: pip install neo4j")
-
-# Try to import NumPy
-try:
-    import numpy as np
-
-    NUMPY_AVAILABLE = True
-except ImportError:
-    NUMPY_AVAILABLE = False
-    print("WARNING: numpy not installed. Install with: pip install numpy")
-
-# Load environment variables
-load_dotenv()
-
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "domain")
-
-
-def get_neo4j_driver():
-    """Get Neo4j driver connection."""
-    if not NEO4J_AVAILABLE:
-        raise ImportError("neo4j driver not available")
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-
-def delete_relationships_in_batches(
-    driver, rel_type: str, batch_size: int = 10000, database: str = None, logger=None
-):
-    """
-    Delete all relationships of a given type in batches using Neo4j's native IN TRANSACTIONS.
-
-    Args:
-        driver: Neo4j driver
-        rel_type: Relationship type to delete
-        batch_size: Batch size for deletion
-        database: Neo4j database name
-        logger: Logger instance
-    """
-    if logger is None:
-        logger = logging.getLogger(__name__)
-
-    with driver.session(database=database) as session:
-        result = session.run(
-            f"""
-            MATCH ()-[r:{rel_type}]->()
-            WITH r LIMIT {batch_size}
-            DELETE r
-            RETURN count(r) AS deleted
-            """
-        )
-        deleted = result.single()["deleted"]
-
-        if deleted > 0:
-            logger.info(f"   ✓ Deleted {deleted} existing {rel_type} relationships")
-            # Recursively delete remaining relationships
-            delete_relationships_in_batches(
-                driver, rel_type, batch_size, database, logger
-            )
-        else:
-            logger.info(f"   ✓ No {rel_type} relationships to delete")
+from domain_status_graph.cli import (
+    add_execute_argument,
+    get_driver_and_database,
+    setup_logging,
+    verify_neo4j_connection,
+)
+from domain_status_graph.neo4j import delete_relationships_in_batches
 
 
 def compute_domain_similarity(
@@ -118,7 +54,9 @@ def compute_domain_similarity(
     if logger is None:
         logger = logging.getLogger(__name__)
 
-    if not NUMPY_AVAILABLE:
+    try:
+        import numpy as np
+    except ImportError:
         raise ImportError("numpy not available. Install with: pip install numpy")
 
     logger.info("")
@@ -148,16 +86,13 @@ def compute_domain_similarity(
         logger.info(f"   Found {domain_count} domains with description embeddings")
 
         if domain_count < 2:
-            logger.warning(
-                "   ⚠ Not enough domains with embeddings to compute similarity"
-            )
+            logger.warning("   ⚠ Not enough domains with embeddings to compute similarity")
             return
 
         # Delete existing SIMILAR_DESCRIPTION relationships
         # between Domains only (not Company-Company)
         logger.info(
-            "   Deleting existing SIMILAR_DESCRIPTION relationships "
-            "(Domain-Domain only)..."
+            "   Deleting existing SIMILAR_DESCRIPTION relationships " "(Domain-Domain only)..."
         )
         with driver.session(database=database) as session:
             result = session.run(
@@ -174,9 +109,7 @@ def compute_domain_similarity(
                     f"SIMILAR_DESCRIPTION relationships"
                 )
             else:
-                logger.info(
-                    "   ✓ No Domain-Domain SIMILAR_DESCRIPTION relationships to delete"
-                )
+                logger.info("   ✓ No Domain-Domain SIMILAR_DESCRIPTION relationships to delete")
 
         with driver.session(database=database) as session:
             # Load all domains with embeddings
@@ -203,16 +136,12 @@ def compute_domain_similarity(
             logger.info(f"   Found {len(domains)} domains with embeddings")
 
             if len(domains) < 2:
-                logger.warning(
-                    "   ⚠ Not enough domains with embeddings to compute similarity"
-                )
+                logger.warning("   ⚠ Not enough domains with embeddings to compute similarity")
                 return
 
             # Compute pairwise cosine similarity
             logger.info("   Computing pairwise cosine similarity...")
-            logger.info(
-                f"   Threshold: {similarity_threshold}, Top-K per domain: {top_k}"
-            )
+            logger.info(f"   Threshold: {similarity_threshold}, Top-K per domain: {top_k}")
 
             # Convert to numpy array for efficient computation
             embeddings_matrix = np.array([d["embedding"] for d in domains])
@@ -228,12 +157,8 @@ def compute_domain_similarity(
 
             # Collect all pairs above threshold that are in top-k for at least one domain
             # Use a set to deduplicate pairs and ensure consistent direction
-            logger.info(
-                "   Collecting similar pairs (top-k per domain, above threshold)..."
-            )
-            pairs = (
-                {}
-            )  # (domain1, domain2) -> score, where domain1 < domain2 (lexicographic order)
+            logger.info("   Collecting similar pairs (top-k per domain, above threshold)...")
+            pairs = {}  # (domain1, domain2) -> score, where domain1 < domain2 (lexicographic order)
 
             for i, _domain in enumerate(domains):
                 # Get similarities for this domain (excluding self-similarity)
@@ -309,9 +234,7 @@ def compute_domain_similarity(
                 )
                 relationships_written += len(batch)
 
-        logger.info(
-            f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships"
-        )
+        logger.info(f"   ✓ Created {relationships_written} SIMILAR_DESCRIPTION relationships")
         logger.info("   ✓ Complete")
 
     except Exception as e:
@@ -347,47 +270,21 @@ def main():
 
     args = parser.parse_args()
 
-    # Set up logging
-    log_dir = Path("logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    log_file = log_dir / f"compute_domain_similarity_{timestamp}.log"
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(),
-        ],
-    )
-
-    logger = logging.getLogger(__name__)
+    logger = setup_logging("compute_domain_similarity", execute=args.execute)
 
     logger.info("=" * 80)
     logger.info("Domain Description Similarity")
-    logger.info(f"Log file: {log_file}")
     logger.info("=" * 80)
 
-    if not NEO4J_AVAILABLE:
-        logger.error("neo4j driver not installed. Install with: pip install neo4j")
-        sys.exit(1)
-
-    if not NUMPY_AVAILABLE:
-        logger.error("numpy not installed. Install with: pip install numpy")
-        sys.exit(1)
-
-    driver = get_neo4j_driver()
+    driver, database = get_driver_and_database(logger)
 
     try:
         # Test connection
-        with driver.session(database=NEO4J_DATABASE) as session:
-            result = session.run("RETURN 1 as test")
-            result.single()
-        logger.info("✓ Connected to Neo4j")
+        if not verify_neo4j_connection(driver, database, logger):
+            sys.exit(1)
 
         # Count domains with embeddings
-        with driver.session(database=NEO4J_DATABASE) as session:
+        with driver.session(database=database) as session:
             result = session.run(
                 """
                 MATCH (d:Domain)
@@ -411,9 +308,7 @@ def main():
                 f"(threshold: {args.similarity_threshold}, top-k: {args.top_k})"
             )
             logger.info("")
-            logger.info(
-                "To execute, run: python scripts/compute_domain_similarity.py --execute"
-            )
+            logger.info("To execute, run: python scripts/compute_domain_similarity.py --execute")
             logger.info("=" * 80)
             return
 
@@ -426,7 +321,7 @@ def main():
             driver,
             similarity_threshold=args.similarity_threshold,
             top_k=args.top_k,
-            database=NEO4J_DATABASE,
+            database=database,
             execute=True,
             logger=logger,
         )

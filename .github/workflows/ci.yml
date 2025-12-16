@@ -52,26 +52,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .  # Install package in editable mode
           pip install black isort flake8 mypy
 
       - name: Check code formatting with Black
         run: |
-          black --check scripts/ || (echo "❌ Black formatting check failed. Run 'black scripts/' to fix." && exit 1)
+          black --check domain_status_graph/ scripts/ || (echo "❌ Black formatting check failed. Run 'black domain_status_graph/ scripts/' to fix." && exit 1)
 
       - name: Check import sorting with isort
         run: |
-          isort --profile black --check scripts/ || (echo "❌ isort check failed. Run 'isort --profile black scripts/' to fix." && exit 1)
+          isort --profile black --check domain_status_graph/ scripts/ || (echo "❌ isort check failed. Run 'isort --profile black domain_status_graph/ scripts/' to fix." && exit 1)
 
       - name: Lint with flake8
         run: |
-          flake8 scripts/ --max-line-length=100 --extend-ignore=E203,W503 || (echo "❌ flake8 check failed. Fix the linting errors above." && exit 1)
+          flake8 domain_status_graph/ scripts/ --max-line-length=100 --extend-ignore=E203,W503 || (echo "❌ flake8 check failed. Fix the linting errors above." && exit 1)
 
       - name: Type check with mypy
         run: |
-          if [ -d "scripts" ]; then
-            mypy scripts/ --ignore-missing-imports || (echo "⚠️  mypy found type issues. Review the output above." && exit 0)  # Non-blocking for now
+          if [ -d "domain_status_graph" ]; then
+            mypy domain_status_graph/ --ignore-missing-imports || (echo "⚠️  mypy found type issues. Review the output above." && exit 0)  # Non-blocking for now
           else
-            echo "⚠️  No scripts directory found. Skipping mypy."
+            echo "⚠️  No domain_status_graph package found. Skipping mypy."
           fi
 
   # Run tests if they exist
@@ -103,12 +104,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .  # Install package in editable mode
           pip install pytest pytest-cov
 
       - name: Run tests
         run: |
           if [ -d "tests" ] && [ "$(find tests -name 'test_*.py' | wc -l)" -gt 0 ]; then
-            pytest -v --cov=scripts --cov-report=xml
+            pytest -v --cov=domain_status_graph --cov-report=xml
           else
             echo "⚠️  No tests found. Skipping test execution."
           fi

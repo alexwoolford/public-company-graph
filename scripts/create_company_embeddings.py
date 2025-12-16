@@ -25,15 +25,9 @@ from typing import Dict, List, Optional
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.openai_client import (  # noqa: E402
+from domain_status_graph.embeddings import (
     EMBEDDING_DIMENSION,
     EMBEDDING_MODEL,
-    MIN_INTERVAL,
-    OPENAI_API_KEY,
-    OPENAI_AVAILABLE,
     create_embedding,
     get_openai_client,
     suppress_http_logging,
@@ -46,6 +40,9 @@ except ImportError:
 
 # Load environment variables
 load_dotenv()
+
+# Rate limiting constant (moved from openai_client for backward compatibility)
+MIN_INTERVAL = 0.01  # 100 requests/second max
 
 
 # Keep batch_create_embeddings for backward compatibility (unused but might be referenced)
@@ -99,7 +96,9 @@ def create_embeddings_for_descriptions(
 
     Returns a dictionary mapping CIK -> embedding vector.
     """
-    if not OPENAI_AVAILABLE:
+    try:
+        from openai import OpenAI
+    except ImportError:
         raise ImportError("openai not available. Install with: pip install openai")
 
     try:
@@ -177,9 +176,7 @@ def create_embeddings_for_descriptions(
     return embeddings
 
 
-def merge_embeddings_into_data(
-    data: List[Dict], embeddings: Dict[str, List[float]]
-) -> List[Dict]:
+def merge_embeddings_into_data(data: List[Dict], embeddings: Dict[str, List[float]]) -> List[Dict]:
     """Merge embeddings back into the original data structure."""
     enriched = []
     missing_count = 0
@@ -269,12 +266,10 @@ def main():
     logger.info("Company Description Embeddings")
     logger.info(f"Log file: {log_file}")
 
-    if not OPENAI_AVAILABLE:
-        logger.error("openai not installed. Install with: pip install openai")
-        sys.exit(1)
-
-    if not OPENAI_API_KEY:
-        logger.error("OPENAI_API_KEY not set in .env file")
+    try:
+        get_openai_client()
+    except (ImportError, ValueError) as e:
+        logger.error(str(e))
         sys.exit(1)
 
     # Determine output file
@@ -300,9 +295,7 @@ def main():
         logger.info("=" * 80)
         logger.info("This script will:")
         logger.info(f"  1. Read {args.input_file}")
-        logger.info(
-            f"  2. Create embeddings for {entries_with_descriptions} descriptions"
-        )
+        logger.info(f"  2. Create embeddings for {entries_with_descriptions} descriptions")
         logger.info(f"  3. Use OpenAI model: {args.model}")
         logger.info(f"  4. Save embeddings to: {args.embeddings_file}")
         logger.info(f"  5. Merge embeddings into: {output_file}")
@@ -311,9 +304,7 @@ def main():
         cost = entries_with_descriptions * 0.00002
         logger.info(f"  ~${cost:.2f} for {entries_with_descriptions} embeddings")
         logger.info("")
-        logger.info(
-            "To execute, run: python scripts/" "create_company_embeddings.py --execute"
-        )
+        logger.info("To execute, run: python scripts/" "create_company_embeddings.py --execute")
         logger.info("=" * 80)
         return
 

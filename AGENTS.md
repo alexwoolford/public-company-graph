@@ -76,10 +76,11 @@
       cp .env.sample .env  # set NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
     </env>
     <quality_tools>
-      isort --profile black src/ scripts/
-      black src/ scripts/
-      flake8 src/ scripts/ --max-line-length=100
-      mypy src/ --ignore-missing-imports
+      isort --profile black domain_status_graph/ scripts/
+      black domain_status_graph/ scripts/
+      flake8 domain_status_graph/ scripts/ --max-line-length=100
+      mypy domain_status_graph/ --ignore-missing-imports
+      pytest tests/ -v --cov=domain_status_graph
       pre-commit run --all-files  # must pass locally and in CI
     </quality_tools>
   </development_setup>
@@ -95,11 +96,14 @@
 
   <architecture_overview>
     <entry file="scripts/bootstrap_graph.py" desc="Entry point: dry-run plan, then execute ingest"/>
-    <entry file="src/schema/constraints.py" desc="ensure_constraints_exist_or_fail()"/>
-    <entry file="src/ingest/sqlite_readers.py" desc="Typed readers & normalizers for SQLite tables"/>
-    <entry file="src/ingest/loaders.py" desc="Batch MERGE for nodes/relationships"/>
-    <entry file="src/gds/pipelines.py" desc="Graph projections & algorithm helpers"/>
-    <entry file="src/constants.py" desc="Batch sizes, property keys, graph names"/>
-    <entry file="queries/money/" desc="Saved Cypher demos for the workshop"/>
+    <entry file="domain_status_graph/neo4j/constraints.py" desc="Constraint creation for Domain, Technology, Company nodes"/>
+    <entry file="domain_status_graph/ingest/sqlite_readers.py" desc="SQLite data readers for domain and technology data"/>
+    <entry file="domain_status_graph/ingest/loaders.py" desc="Neo4j batch loaders for Domain and Technology nodes"/>
+    <entry file="domain_status_graph/embeddings/" desc="Embedding creation, caching, and OpenAI client"/>
+    <entry file="domain_status_graph/cli.py" desc="Common CLI utilities (logging, dry-run, connection handling)"/>
+    <entry file="domain_status_graph/config.py" desc="Configuration management (Neo4j, OpenAI, data paths)"/>
+    <entry file="domain_status_graph/neo4j/connection.py" desc="Neo4j driver and session management"/>
+    <entry file="docs/ARCHITECTURE.md" desc="Complete architecture documentation (package structure, design principles)"/>
+    <entry file="docs/money_queries.md" desc="High-value Cypher query examples"/>
   </architecture_overview>
 </agents_guidance>

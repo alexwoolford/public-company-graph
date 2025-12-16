@@ -4,6 +4,16 @@ This directory contains documentation for the domain status graph project.
 
 ## Documentation Index
 
+### [Architecture Documentation](./ARCHITECTURE.md) 🏗️ **NEW**
+Complete architecture overview:
+- Package structure and module organization
+- Design principles and patterns
+- Data flow diagrams
+- Testing strategy
+- **Essential reference** for understanding the codebase structure
+
+## Quick Links
+
 ### [High-Value Queries](./money_queries.md) 💰 **START HERE**
 2 high-value Graph Data Science features that provide real business value:
 - Technology Adopter Prediction - GDS Personalized PageRank

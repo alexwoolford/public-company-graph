@@ -90,6 +90,8 @@ All code and documentation is streamlined to support these two high-value use ca
 
 See `SETUP_GUIDE.md` for complete setup instructions.
 
+For architecture and package structure details, see `docs/ARCHITECTURE.md`.
+
 ---
 
 ## Bottom Line
