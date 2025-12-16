@@ -15,48 +15,24 @@ Usage:
 
 import argparse
 import logging
-import os
 import sys
-import time
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.create_embeddings import create_embeddings_for_nodes  # noqa: E402
-from src.embedding_cache import EmbeddingCache  # noqa: E402
-from src.openai_client import (  # noqa: E402
+from domain_status_graph.cli import (
+    add_execute_argument,
+    get_driver_and_database,
+    setup_logging,
+    verify_neo4j_connection,
+)
+from domain_status_graph.embeddings import (
     EMBEDDING_DIMENSION,
     EMBEDDING_MODEL,
+    EmbeddingCache,
+    create_embeddings_for_nodes,
+    create_embedding,
     get_openai_client,
     suppress_http_logging,
 )
-
-# Load environment variables
-load_dotenv()
-
-# Try to import Neo4j driver
-try:
-    from neo4j import GraphDatabase
-
-    NEO4J_AVAILABLE = True
-except ImportError:
-    NEO4J_AVAILABLE = False
-    print("WARNING: neo4j driver not installed. Install with: pip install neo4j")
-
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "")
-NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "domain")
-
-
-def get_neo4j_driver():
-    """Get Neo4j driver connection."""
-    if not NEO4J_AVAILABLE:
-        raise ImportError("neo4j driver not available")
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 
 def update_domain_embeddings(
@@ -65,6 +41,7 @@ def update_domain_embeddings(
     client,
     database: str = None,
     execute: bool = False,
+    logger: logging.Logger = None,
 ):
     """
     Create/load embeddings for all domains and update Neo4j.
@@ -77,8 +54,11 @@ def update_domain_embeddings(
         client: OpenAI client instance
         database: Neo4j database name
         execute: If False, only print plan
+        logger: Logger instance for output
     """
-    from src.openai_client import create_embedding
+    # Initialize logger if not provided
+    if logger is None:
+        logger = logging.getLogger(__name__)
 
     # Use general-purpose function
     processed, created, cached, failed = create_embeddings_for_nodes(
@@ -116,11 +96,7 @@ def main():
         description="Create embeddings for Domain descriptions",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "--execute",
-        action="store_true",
-        help="Actually create embeddings (default is dry-run)",
-    )
+    add_execute_argument(parser)
     parser.add_argument(
         "--cache-file",
         type=Path,
@@ -136,32 +112,11 @@ def main():
 
     args = parser.parse_args()
 
-    # Set up logging
-    log_dir = Path("logs")
-    log_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    log_file = log_dir / f"create_domain_embeddings_{timestamp}.log"
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(),
-        ],
-    )
-
-    global logger
-    logger = logging.getLogger(__name__)
+    logger = setup_logging("create_domain_embeddings", execute=args.execute)
 
     logger.info("=" * 80)
     logger.info("Domain Description Embeddings")
-    logger.info(f"Log file: {log_file}")
     logger.info("=" * 80)
-
-    if not NEO4J_AVAILABLE:
-        logger.error("neo4j driver not installed. Install with: pip install neo4j")
-        sys.exit(1)
 
     # Suppress HTTP logging
     suppress_http_logging()
@@ -177,17 +132,15 @@ def main():
         sys.exit(1)
 
     # Get Neo4j driver
-    driver = get_neo4j_driver()
+    driver, database = get_driver_and_database(logger)
 
     try:
         # Test connection
-        with driver.session(database=NEO4J_DATABASE) as session:
-            result = session.run("RETURN 1 as test")
-            result.single()
-        logger.info("✓ Connected to Neo4j")
+        if not verify_neo4j_connection(driver, database, logger):
+            sys.exit(1)
 
         # Count domains with descriptions
-        with driver.session(database=NEO4J_DATABASE) as session:
+        with driver.session(database=database) as session:
             result = session.run(
                 """
                 MATCH (d:Domain)
@@ -221,9 +174,7 @@ def main():
                 f"  ~${new_embeddings * 0.00002:.2f} for ~{int(new_embeddings)} new embeddings"
             )
             logger.info("")
-            logger.info(
-                "To execute, run: python scripts/create_domain_embeddings.py --execute"
-            )
+            logger.info("To execute, run: python scripts/create_domain_embeddings.py --execute")
             logger.info("=" * 80)
             return
 
@@ -236,8 +187,9 @@ def main():
             driver,
             cache,
             client,
-            database=NEO4J_DATABASE,
+            database=database,
             execute=True,
+            logger=logger,
         )
 
         logger.info("=" * 80)

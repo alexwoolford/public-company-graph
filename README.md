@@ -84,6 +84,7 @@ Both algorithms leverage the graph structure to provide insights that would requ
    git clone <repository-url>
    cd domain_status_graph
    pip install -r requirements.txt
+   pip install -e .  # Install package in editable mode
    cp .env.sample .env
    # Edit .env with your Neo4j credentials
    ```
@@ -174,6 +175,7 @@ Shopify → PayPal (indirect: 2-3 hops away, lower score)
 
 ## Documentation
 
+- **Architecture**: `docs/ARCHITECTURE.md` - Package structure and design principles
 - **High-Value Queries**: `docs/money_queries.md` - **START HERE** - 2 GDS features with business value
 - **Graph Schema**: `docs/graph_schema.md` - Complete schema reference
 - **GDS Features**: `docs/gds_features.md` - Detailed GDS feature documentation
@@ -213,30 +215,40 @@ See `docs/money_queries.md` for complete query examples.
 
 ```
 domain_status_graph/
-├── data/
-│   └── domain_status.db        # Source SQLite database (included)
-├── scripts/
-│   ├── bootstrap_graph.py      # ETL: SQLite → Neo4j (Domain, Technology)
-│   ├── compute_gds_features.py # GDS feature computation (CO_OCCURS_WITH, LIKELY_TO_ADOPT)
-│   ├── run_all_pipelines.py   # Orchestration: runs all pipelines in order
-│   ├── collect_domains.py      # Company domain collection (for company data pipeline)
-│   ├── create_company_embeddings.py  # Company description embeddings
-│   ├── create_domain_embeddings.py   # Domain description embeddings
-│   ├── compute_domain_similarity.py   # Domain-Domain similarity computation
-│   └── load_company_data.py    # Company nodes + HAS_DOMAIN relationships
-├── docs/
-│   ├── graph_schema.md         # Complete schema documentation
-│   ├── gds_features.md          # GDS features documentation
+├── domain_status_graph/         # Python package (installable)
+│   ├── __init__.py             # Package initialization
+│   ├── config.py               # Configuration management
+│   ├── cli.py                  # Common CLI utilities
+│   ├── embeddings/             # Embedding creation and caching
+│   ├── neo4j/                  # Neo4j connection and utilities
+│   ├── ingest/                 # SQLite → Neo4j data loading
+│   ├── gds/                    # Graph Data Science utilities
+│   └── similarity/             # Similarity computation
+├── scripts/                     # Orchestration scripts
+│   ├── bootstrap_graph.py      # ETL: SQLite → Neo4j
+│   ├── compute_gds_features.py # GDS feature computation
+│   ├── run_all_pipelines.py    # Orchestration: runs all pipelines
+│   └── ...                     # Other pipeline scripts
+├── tests/                       # Test suite
+│   ├── unit/                   # Unit tests
+│   └── integration/            # Integration tests
+├── docs/                        # Documentation
+│   ├── ARCHITECTURE.md         # Package architecture (⭐ NEW)
+│   ├── graph_schema.md         # Graph schema reference
+│   ├── gds_features.md         # GDS features documentation
 │   ├── money_queries.md        # Business query examples
-│   ├── GDS_ALGORITHM_COVERAGE.md  # Algorithm coverage analysis
 │   └── README.md               # Documentation index
+├── data/                        # Data files
+│   └── domain_status.db        # Source SQLite database (included)
 ├── SETUP_GUIDE.md              # Complete setup instructions
 ├── QUICK_START.md              # Quick reference guide
 ├── AGENTS.md                   # Agent guidance and rules
+├── pyproject.toml              # Python package configuration
 ├── requirements.txt            # Python dependencies
-├── .env.sample                 # Environment variable template
 └── README.md                   # This file
 ```
+
+**For detailed architecture documentation, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**
 
 ## Requirements
 
