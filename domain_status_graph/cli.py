@@ -181,3 +181,12 @@ def run_health_check():
 
     script = Path(__file__).parent.parent / "scripts" / "health_check.py"
     subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_all_pipelines():
+    """Entry point for run-all-pipelines command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "run_all_pipelines.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])
