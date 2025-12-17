@@ -91,18 +91,38 @@ Both algorithms leverage the graph structure to provide insights that would requ
 
 2. **Bootstrap the graph**:
    ```bash
-   python scripts/bootstrap_graph.py --execute
+   bootstrap-graph --execute
+   # Or: python scripts/bootstrap_graph.py --execute
    ```
 
 3. **Compute GDS features**:
    ```bash
-   python scripts/compute_gds_features.py --execute
+   compute-gds-features --execute
+   # Or: python scripts/compute_gds_features.py --execute
+   ```
+
+4. **Verify health**:
+   ```bash
+   health-check
+   # Or: python scripts/health_check.py
    ```
 
 **Alternative**: Use the orchestration script to run all pipelines in order:
    ```bash
    python scripts/run_all_pipelines.py --execute
    ```
+
+### CLI Commands
+
+After installing the package (`pip install -e .`), these commands are available:
+
+| Command | Description |
+|---------|-------------|
+| `bootstrap-graph` | Load data from SQLite into Neo4j |
+| `compute-gds-features` | Compute GDS features (adoption prediction, affinity) |
+| `health-check` | Verify Neo4j connection, constraints, and data counts |
+
+All commands support `--execute` flag (default is dry-run mode).
 
 **For detailed step-by-step instructions with verification, see [`SETUP_GUIDE.md`](SETUP_GUIDE.md)**
 
