@@ -53,6 +53,7 @@ Issues = "https://github.com/alexwoolford/domain_status_graph/issues"
 bootstrap-graph = "domain_status_graph.cli:run_bootstrap"
 compute-gds-features = "domain_status_graph.cli:run_gds_features"
 health-check = "domain_status_graph.cli:run_health_check"
+run-all-pipelines = "domain_status_graph.cli:run_all_pipelines"
 
 [tool.setuptools]
 packages = ["domain_status_graph"]

@@ -118,7 +118,8 @@ After installing the package (`pip install -e .`), these commands are available:
 
 | Command | Description |
 |---------|-------------|
-| `bootstrap-graph` | Load data from SQLite into Neo4j |
+| `run-all-pipelines` | Run everything: bootstrap, companies, embeddings, GDS |
+| `bootstrap-graph` | Load Domain/Technology data from SQLite into Neo4j |
 | `compute-gds-features` | Compute GDS features (adoption prediction, affinity) |
 | `health-check` | Verify Neo4j connection, constraints, and data counts |
 
