@@ -151,3 +151,33 @@ def print_execute_header(title: str, logger: Optional[logging.Logger] = None):
     logger.info("=" * 70)
     logger.info(title)
     logger.info("=" * 70)
+
+
+# CLI entry points for pyproject.toml [project.scripts]
+
+
+def run_bootstrap():
+    """Entry point for bootstrap-graph command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "bootstrap_graph.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_gds_features():
+    """Entry point for compute-gds-features command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "compute_gds_features.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_health_check():
+    """Entry point for health-check command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "health_check.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])

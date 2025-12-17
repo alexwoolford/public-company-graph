@@ -30,6 +30,7 @@ dependencies = [
     "tqdm>=4.65.0",
     "numpy>=1.24.0",
     "requests>=2.31.0",
+    "tenacity>=8.0.0",
 ]
 
 [project.optional-dependencies]
@@ -48,11 +49,16 @@ Homepage = "https://github.com/alexwoolford/domain_status_graph"
 Repository = "https://github.com/alexwoolford/domain_status_graph"
 Issues = "https://github.com/alexwoolford/domain_status_graph/issues"
 
+[project.scripts]
+bootstrap-graph = "domain_status_graph.cli:run_bootstrap"
+compute-gds-features = "domain_status_graph.cli:run_gds_features"
+health-check = "domain_status_graph.cli:run_health_check"
+
 [tool.setuptools]
 packages = ["domain_status_graph"]
 
 [tool.setuptools.package-data]
-"*" = ["*.md", "*.txt"]
+"domain_status_graph" = ["py.typed"]
 
 [tool.black]
 line-length = 100

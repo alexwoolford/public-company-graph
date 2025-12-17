@@ -1,1 +1,1 @@
-"""Integration tests for domain_status_graph package."""
+"""Integration tests for domain_status_graph."""

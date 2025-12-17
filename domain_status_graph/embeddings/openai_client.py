@@ -65,11 +65,22 @@ def create_embedding(
     if not text or not text.strip():
         return None
 
-    try:
-        response = client.embeddings.create(model=model, input=text.strip())
+    return _create_embedding_with_retry(client, text.strip(), model)
+
+
+def _create_embedding_with_retry(client: OpenAI, text: str, model: str) -> Optional[List[float]]:
+    """Internal function with retry logic for embedding creation."""
+    from domain_status_graph.retry import retry_openai
+
+    @retry_openai
+    def _call_api():
+        response = client.embeddings.create(model=model, input=text)
         return response.data[0].embedding
+
+    try:
+        return _call_api()
     except Exception as e:
-        logging.warning(f"Error creating embedding: {e}")
+        logging.warning(f"Error creating embedding after retries: {e}")
         return None
 
 
