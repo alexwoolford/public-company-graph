@@ -98,6 +98,11 @@ def create_company_constraints(
     constraints = [
         "CREATE CONSTRAINT company_cik IF NOT EXISTS FOR (c:Company) REQUIRE c.cik IS UNIQUE",
         "CREATE INDEX company_ticker IF NOT EXISTS FOR (c:Company) ON (c.ticker)",
+        # Indexes for new enrichment properties (Phase 1)
+        "CREATE INDEX company_sector IF NOT EXISTS FOR (c:Company) ON (c.sector)",
+        "CREATE INDEX company_industry IF NOT EXISTS FOR (c:Company) ON (c.industry)",
+        "CREATE INDEX company_sic_code IF NOT EXISTS FOR (c:Company) ON (c.sic_code)",
+        "CREATE INDEX company_naics_code IF NOT EXISTS FOR (c:Company) ON (c.naics_code)",
     ]
     _run_constraints(driver, constraints, database=database, log=logger)
 
