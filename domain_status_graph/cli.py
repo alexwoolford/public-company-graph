@@ -243,3 +243,12 @@ def run_enrich_company_properties():
 
     script = Path(__file__).parent.parent / "scripts" / "enrich_company_properties.py"
     subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_compute_company_similarity():
+    """Entry point for compute-company-similarity command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "compute_company_similarity.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])

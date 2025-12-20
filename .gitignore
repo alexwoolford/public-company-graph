@@ -47,6 +47,10 @@ data/.geoip_cache
 data/.user_agent_cache
 data/.whois_cache
 
+# SQLite WAL files (write-ahead log)
+*.db-shm
+*.db-wal
+
 # Testing
 .pytest_cache/
 .coverage

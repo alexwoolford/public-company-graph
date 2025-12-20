@@ -27,6 +27,7 @@ COLLECT_DOMAINS_SCRIPT = SCRIPT_DIR / "collect_domains.py"
 CREATE_COMPANY_EMBEDDINGS_SCRIPT = SCRIPT_DIR / "create_company_embeddings.py"
 LOAD_COMPANY_DATA_SCRIPT = SCRIPT_DIR / "load_company_data.py"
 ENRICH_COMPANY_PROPERTIES_SCRIPT = SCRIPT_DIR / "enrich_company_properties.py"
+COMPUTE_COMPANY_SIMILARITY_SCRIPT = SCRIPT_DIR / "compute_company_similarity.py"
 CREATE_DOMAIN_EMBEDDINGS_SCRIPT = SCRIPT_DIR / "create_domain_embeddings.py"
 COMPUTE_DOMAIN_SIMILARITY_SCRIPT = SCRIPT_DIR / "compute_domain_similarity.py"
 COMPUTE_KEYWORD_SIMILARITY_SCRIPT = SCRIPT_DIR / "compute_keyword_similarity.py"
@@ -103,6 +104,7 @@ def main():
         )
         print("  - load_company_data.py - Load Company nodes and HAS_DOMAIN relationships")
         print("  - enrich_company_properties.py - Enrich Company nodes with properties")
+        print("  - compute_company_similarity.py - Create SIMILAR_INDUSTRY and SIMILAR_SIZE")
         print()
         print("Step 3: Domain Embeddings & Similarity")
         print("  - create_domain_embeddings.py - Create embeddings for Domain descriptions")
@@ -200,11 +202,20 @@ def main():
         print("\n✗ Failed at enrich_company_properties step")
         return
 
+    # Compute company similarity relationships
+    if not run_script(
+        COMPUTE_COMPANY_SIMILARITY_SCRIPT,
+        execute=True,
+        description="Step 2.4: Compute Company Similarity (Industry & Size)",
+    ):
+        print("\n✗ Failed at compute_company_similarity step")
+        return
+
     # Then create embeddings for the Company nodes
     if not run_script(
         CREATE_COMPANY_EMBEDDINGS_SCRIPT,
         execute=True,
-        description="Step 2.4: Create Company Description Embeddings",
+        description="Step 2.5: Create Company Description Embeddings",
     ):
         print("\n✗ Pipeline 2 failed at create_embeddings step")
         return
