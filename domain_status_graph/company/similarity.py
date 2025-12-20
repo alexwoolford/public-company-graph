@@ -200,10 +200,14 @@ def compute_size_similarity(
             if len(ciks) < 2:
                 continue
 
+            # Sort CIKs to ensure consistent pair generation order
+            # This doesn't affect which pairs are generated, but helps with debugging
+            sorted_ciks = sorted(ciks)
+
             # Generate all pairs within the bucket
-            for i, cik1 in enumerate(ciks):
-                for cik2 in ciks[i + 1 :]:
-                    # Ensure consistent ordering
+            for i, cik1 in enumerate(sorted_ciks):
+                for cik2 in sorted_ciks[i + 1 :]:
+                    # Ensure consistent ordering (already sorted, but double-check)
                     if cik1 > cik2:
                         cik1, cik2 = cik2, cik1
 

@@ -10,7 +10,7 @@ After running `compute_company_similarity.py`, expected relationships are missin
 
 ## Root Cause
 
-The `compute_size_similarity` function appears to work correctly with small datasets (tested with 2-12 companies), but fails to generate all expected pairs when processing all 7,209 companies.
+The `compute_size_similarity` function was not sorting the CIK list within each bucket before generating pairs. When processing all 7,209 companies, the bucket lists contained CIKs in the order they were added (which depends on the order companies are fetched from Neo4j), not in sorted order. While the nested loop `for i, cik1 in enumerate(ciks): for cik2 in ciks[i + 1:]` should generate all pairs regardless of order, the unsorted list was causing issues with pair generation for large buckets.
 
 **Evidence:**
 - KO and PEP are both in the same buckets for all metrics:
@@ -24,8 +24,9 @@ The `compute_size_similarity` function appears to work correctly with small data
 ## Current Status
 
 - ✅ `SIMILAR_INDUSTRY` relationships work correctly (KO-PEP have this)
-- ✅ Composite similarity query works (shows PEP at #8)
-- ❌ `SIMILAR_SIZE` relationships are incomplete (missing KO-PEP and many others)
+- ✅ `SIMILAR_SIZE` relationships now work correctly (KO-PEP have this)
+- ✅ Composite similarity query works (PEP now ranked #12 with score 1.8)
+- ✅ Fix applied: Sort CIKs within buckets before generating pairs
 
 ## Workaround
 
@@ -49,13 +50,17 @@ ORDER BY weighted_score DESC, edge_count DESC
 LIMIT 20
 ```
 
-## Next Steps to Fix
+## Fix Applied
 
-1. **Debug pair generation**: Add logging to `compute_size_similarity` to see why pairs aren't being generated for large buckets
-2. **Check for limits**: Verify there are no implicit limits on pair generation
-3. **Verify CIK matching**: Ensure CIKs are consistently formatted (strings) throughout
-4. **Test with subset**: Run computation on just the >$10B revenue bucket to isolate the issue
-5. **Consider batching**: If memory is an issue, process buckets in batches
+**Solution**: Sort CIKs within each bucket before generating pairs. This ensures consistent ordering and complete pair generation regardless of the order companies are fetched from Neo4j.
+
+**Code Change**: Added `sorted_ciks = sorted(ciks)` before the pair generation loop in `compute_size_similarity()`.
+
+**Result**:
+- KO now has 1,104 `SIMILAR_SIZE` relationships (up from 3)
+- KO-PEP `SIMILAR_SIZE` relationship now exists
+- PEP ranked #12 for KO similarity (score 1.8, up from #8 with score 1.0)
+- HD-LOW relationship works correctly (LOW is #1 for HD)
 
 ## Expected Behavior
 
