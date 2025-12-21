@@ -252,3 +252,39 @@ def run_compute_company_similarity():
 
     script = Path(__file__).parent.parent / "scripts" / "compute_company_similarity.py"
     subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_validate_ranking_quality():
+    """Entry point for validate-ranking-quality command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "validate_ranking_quality.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_validate_famous_pairs():
+    """Entry point for validate-famous-pairs command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "validate_famous_pairs.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_compute_company_similarity_via_domains():
+    """Entry point for compute-company-similarity-via-domains command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "compute_company_similarity_via_domains.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])
+
+
+def run_optimize_similarity_weights():
+    """Entry point for optimize-similarity-weights command."""
+    import subprocess
+    from pathlib import Path
+
+    script = Path(__file__).parent.parent / "scripts" / "optimize_similarity_weights.py"
+    subprocess.run([sys.executable, str(script)] + sys.argv[1:])

@@ -9,6 +9,14 @@ BATCH_SIZE_SMALL = 1000  # For node creation
 BATCH_SIZE_LARGE = 5000  # For relationship creation
 BATCH_SIZE_DELETE = 10000  # For relationship deletion
 
+# APOC constants (deprecated - no longer used)
+# Kept for backwards compatibility, but we now use optimized UNWIND batching
+# See docs/BATCH_WRITE_PERFORMANCE.md for details
+APOC_BATCH_SIZE = 10000  # Deprecated
+APOC_CONCURRENCY = 8  # Deprecated
+APOC_RETRIES = 3  # Deprecated
+APOC_ITERATE_LIST = False  # Deprecated
+
 # GDS algorithm defaults
 DEFAULT_TOP_K = 50
 DEFAULT_SIMILARITY_CUTOFF = 0.1

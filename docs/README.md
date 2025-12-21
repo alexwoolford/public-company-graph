@@ -45,6 +45,14 @@ Analysis of GDS algorithm coverage:
 - What's not implemented and why
 - Algorithm details and business value
 
+### [Validation](./VALIDATION.md) ✅
+Validation approach for company similarity:
+- Famous pairs validation (quick smoke tests)
+- Current status: 32.6% pass rate (data quality issue)
+- Limitations and future use
+
+### [Famous Competitor Pairs](./FAMOUS_COMPETITOR_PAIRS.md) 📝
+Reference corpus of 46 famous competitor pairs used for validation.
 
 ## Quick Start
 

@@ -12,6 +12,7 @@ Uses the enriched Company properties from Phase 1 to create similarity edges.
 import argparse
 import logging
 import sys
+import time
 from typing import Dict, List, Optional
 
 from domain_status_graph.cli import (
@@ -170,47 +171,33 @@ def write_size_relationships(
         if deleted > 0:
             log.info(f"Deleted {deleted} existing relationships")
 
-    # Write new relationships
-    log.info(f"Writing {len(pairs)} SIMILAR_SIZE relationships...")
-    batch = []
+    # Write new relationships using optimized UNWIND batching
+    # This approach is reliable, performant, and works on all systems
+    log.info(f"Writing {len(pairs):,} SIMILAR_SIZE relationships...")
+
+    # Prepare batch data
+    batch_data = [
+        {
+            "cik1": cik1,
+            "cik2": cik2,
+            "method": props.get("method", "COMPOSITE"),
+            "metric": props.get("metric", ""),
+            "bucket": props.get("bucket", ""),
+            "score": props.get("score", 1.0),
+        }
+        for cik1, cik2, props in pairs
+    ]
+
     relationships_written = 0
+    total_batches = (len(batch_data) + batch_size - 1) // batch_size
+    start_time = None
 
-    for cik1, cik2, props in pairs:
-        batch.append(
-            {
-                "cik1": cik1,
-                "cik2": cik2,
-                "method": props.get("method", "COMPOSITE"),
-                "metric": props.get("metric", ""),
-                "bucket": props.get("bucket", ""),
-                "score": props.get("score", 1.0),
-            }
-        )
-
-        if len(batch) >= batch_size:
-            with driver.session(database=database) as session:
-                result = session.run(
-                    """
-                    UNWIND $batch AS rel
-                    MATCH (c1:Company {cik: rel.cik1})
-                    MATCH (c2:Company {cik: rel.cik2})
-                    WHERE c1 <> c2
-                    MERGE (c1)-[r:SIMILAR_SIZE]->(c2)
-                    SET r.method = rel.method,
-                        r.metric = rel.metric,
-                        r.bucket = rel.bucket,
-                        r.score = rel.score,
-                        r.computed_at = datetime()
-                    RETURN count(r) AS created
-                    """,
-                    batch=batch,
-                )
-                relationships_written += result.single()["created"]
-            batch = []
-
-    # Write remaining batch
-    if batch:
-        with driver.session(database=database) as session:
+    # Use optimized UNWIND batching with progress reporting
+    # This is reliable and performant (typically 1-2M relationships/minute)
+    with driver.session(database=database) as session:
+        start_time = time.time()
+        for i in range(0, len(batch_data), batch_size):
+            chunk = batch_data[i : i + batch_size]
             result = session.run(
                 """
                 UNWIND $batch AS rel
@@ -225,9 +212,34 @@ def write_size_relationships(
                     r.computed_at = datetime()
                 RETURN count(r) AS created
                 """,
-                batch=batch,
+                batch=chunk,
             )
             relationships_written += result.single()["created"]
+
+            # Progress reporting every 100 batches or at milestones
+            batch_num = (i // batch_size) + 1
+            if batch_num % 100 == 0 or batch_num == total_batches:
+                progress_pct = (batch_num / total_batches) * 100
+                processed = i + len(chunk)
+                total = len(batch_data)
+                elapsed = time.time() - start_time
+                rate = processed / elapsed if elapsed > 0 else 0
+                eta_seconds = (total - processed) / rate if rate > 0 else 0
+                eta_minutes = eta_seconds / 60
+
+                log.info(
+                    f"  Progress: {batch_num}/{total_batches} batches "
+                    f"({progress_pct:.1f}%) - {processed:,}/{total:,} relationships "
+                    f"({rate:,.0f}/min, ETA: {eta_minutes:.1f}m)"
+                )
+
+    if start_time:
+        elapsed_total = time.time() - start_time
+        rate_total = (relationships_written / elapsed_total * 60) if elapsed_total > 0 else 0
+        log.info(
+            f"Completed in {elapsed_total/60:.1f} minutes "
+            f"({rate_total:,.0f} relationships/minute)"
+        )
 
     log.info(f"Created {relationships_written} SIMILAR_SIZE relationships")
     return relationships_written

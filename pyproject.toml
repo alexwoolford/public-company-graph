@@ -58,6 +58,10 @@ run-all-pipelines = "domain_status_graph.cli:run_all_pipelines"
 cache = "domain_status_graph.cli:run_cache"
 enrich-company-properties = "domain_status_graph.cli:run_enrich_company_properties"
 compute-company-similarity = "domain_status_graph.cli:run_compute_company_similarity"
+validate-ranking-quality = "domain_status_graph.cli:run_validate_ranking_quality"
+validate-famous-pairs = "domain_status_graph.cli:run_validate_famous_pairs"
+compute-company-similarity-via-domains = "domain_status_graph.cli:run_compute_company_similarity_via_domains"
+optimize-similarity-weights = "domain_status_graph.cli:run_optimize_similarity_weights"
 
 [tool.setuptools]
 packages = ["domain_status_graph"]

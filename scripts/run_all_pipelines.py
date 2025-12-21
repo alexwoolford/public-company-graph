@@ -31,6 +31,9 @@ COMPUTE_COMPANY_SIMILARITY_SCRIPT = SCRIPT_DIR / "compute_company_similarity.py"
 CREATE_DOMAIN_EMBEDDINGS_SCRIPT = SCRIPT_DIR / "create_domain_embeddings.py"
 COMPUTE_DOMAIN_SIMILARITY_SCRIPT = SCRIPT_DIR / "compute_domain_similarity.py"
 COMPUTE_KEYWORD_SIMILARITY_SCRIPT = SCRIPT_DIR / "compute_keyword_similarity.py"
+COMPUTE_COMPANY_SIMILARITY_VIA_DOMAINS_SCRIPT = (
+    SCRIPT_DIR / "compute_company_similarity_via_domains.py"
+)
 
 
 def run_script(
@@ -110,6 +113,10 @@ def main():
         print("  - create_domain_embeddings.py - Create embeddings for Domain descriptions")
         print("  - compute_domain_similarity.py - Compute Domain-Domain description similarity")
         print("  - compute_keyword_similarity.py - Compute Domain-Domain keyword similarity")
+        print(
+            "  - compute_company_similarity_via_domains.py - "
+            "Create Company-Company edges from Domain similarity"
+        )
         print()
         print("Step 4: Compute GDS Features")
         print("  - compute_gds_features.py - Compute all features:")
@@ -154,7 +161,7 @@ def main():
 
     # Run collect_domains.py if needed
     if cached_companies == 0 and not args.fast:
-        print(f"⚠ No companies in cache")
+        print("⚠ No companies in cache")
         print("  Running collect_domains.py...")
         if not run_script(
             COLLECT_DOMAINS_SCRIPT,
@@ -181,7 +188,7 @@ def main():
                 return
     else:
         # cached_companies == 0 and args.fast
-        print(f"⚠ No companies in cache, but --fast mode enabled")
+        print("⚠ No companies in cache, but --fast mode enabled")
         print("  Skipping collect_domains.py (use without --fast to fetch companies)")
 
     # Load Company nodes first (needed before creating embeddings)
@@ -250,6 +257,15 @@ def main():
         print("\n✗ Failed at compute_keyword_similarity step")
         return
 
+    # Create company similarity from domain similarity
+    if not run_script(
+        COMPUTE_COMPANY_SIMILARITY_VIA_DOMAINS_SCRIPT,
+        execute=True,
+        description="Step 3.4: Create Company-Company edges from Domain similarity",
+    ):
+        print("\n✗ Failed at compute_company_similarity_via_domains step")
+        return
+
     # Step 4: Compute all GDS features (tech + company similarity in one pass)
     print("\n" + "=" * 70)
     print("STEP 4: Compute GDS Features")
@@ -281,6 +297,7 @@ def main():
     print("  ✓ Company nodes with description embeddings")
     print("  ✓ HAS_DOMAIN relationships (Company → Domain)")
     print("  ✓ SIMILAR_DESCRIPTION relationships (Company → Company)")
+    print("  ✓ SIMILAR_KEYWORD relationships (Company → Company, from domains)")
     print()
 
 
