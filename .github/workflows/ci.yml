@@ -58,10 +58,6 @@ jobs:
           ruff check domain_status_graph/ scripts/ || (echo "❌ Ruff linting failed. Run 'ruff check --fix domain_status_graph/ scripts/' to fix." && exit 1)
           ruff format --check domain_status_graph/ scripts/ || (echo "❌ Ruff format check failed. Run 'ruff format domain_status_graph/ scripts/' to fix." && exit 1)
 
-      - name: Check code formatting with Black
-        run: |
-          black --check domain_status_graph/ scripts/ || (echo "❌ Black formatting check failed. Run 'black domain_status_graph/ scripts/' to fix." && exit 1)
-
       - name: Type check with mypy
         run: |
           if [ -d "domain_status_graph" ]; then

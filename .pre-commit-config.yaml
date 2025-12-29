@@ -2,21 +2,15 @@
 # Install: pip install pre-commit && pre-commit install
 
 repos:
-  # Ruff - Fast Python linter (replaces flake8, isort, and more)
+  # Ruff - Fast Python linter and formatter (replaces flake8, isort, black)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.10
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
         description: "Lint Python code with Ruff"
-
-  # Black - Python code formatter
-  - repo: https://github.com/psf/black
-    rev: 25.12.0
-    hooks:
-      - id: black
-        language_version: python3
-        description: "Format Python code with Black"
+      - id: ruff-format
+        description: "Format Python code with Ruff (black-compatible)"
 
   # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
