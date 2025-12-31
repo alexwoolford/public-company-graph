@@ -61,43 +61,25 @@ Using Neo4j Graph Data Science (GDS):
 
 ## Graph Schema Overview
 
-```mermaid
-graph LR
-    subgraph Nodes
-        C[Company<br/>5,398]
-        D[Domain<br/>4,337]
-        T[Technology<br/>827]
-    end
+**Nodes**: 5,398 Companies • 4,337 Domains • 827 Technologies
 
-    C -->|HAS_DOMAIN<br/>3,745| D
-    D -->|USES<br/>46,081| T
-    D -.->|LIKELY_TO_ADOPT<br/>41,250| T
-    T -.->|CO_OCCURS_WITH<br/>41,220| T
+**Relationships** (~2M total):
 
-    subgraph "Company→Company"
-        C -->|HAS_COMPETITOR| C
-        C -->|HAS_SUPPLIER| C
-        C -->|HAS_CUSTOMER| C
-        C -->|HAS_PARTNER| C
-        C -.->|SIMILAR_DESCRIPTION| C
-        C -.->|SIMILAR_INDUSTRY| C
-        C -.->|SIMILAR_SIZE| C
-        C -.->|SIMILAR_RISK| C
-        C -.->|SIMILAR_TECHNOLOGY| C
-    end
-```
-
-| Relationship | Count | Description |
-|--------------|-------|-------------|
-| SIMILAR_INDUSTRY | 520,672 | Same sector/industry |
-| SIMILAR_DESCRIPTION | 436,973 | Embedding cosine similarity |
-| SIMILAR_SIZE | 414,096 | Revenue/market cap buckets |
-| SIMILAR_RISK | 394,372 | Risk factor similarity |
-| SIMILAR_TECHNOLOGY | 124,584 | Jaccard on tech stacks |
-| HAS_COMPETITOR | 3,843 | Cited in 10-K |
-| HAS_SUPPLIER | 2,597 | Cited in 10-K |
-| HAS_PARTNER | 2,139 | Cited in 10-K |
-| HAS_CUSTOMER | 1,714 | Cited in 10-K |
+| Type | From → To | Count | Source |
+|------|-----------|-------|--------|
+| `SIMILAR_INDUSTRY` | Company → Company | 520,672 | Sector/industry match |
+| `SIMILAR_DESCRIPTION` | Company → Company | 436,973 | Embedding cosine similarity |
+| `SIMILAR_SIZE` | Company → Company | 414,096 | Revenue/market cap buckets |
+| `SIMILAR_RISK` | Company → Company | 394,372 | Risk factor embeddings |
+| `SIMILAR_TECHNOLOGY` | Company → Company | 124,584 | Jaccard on tech stacks |
+| `USES` | Domain → Technology | 46,081 | HTTP fingerprinting |
+| `LIKELY_TO_ADOPT` | Domain → Technology | 41,250 | PageRank prediction |
+| `CO_OCCURS_WITH` | Technology → Technology | 41,220 | Co-occurrence analysis |
+| `HAS_COMPETITOR` | Company → Company | 3,843 | Extracted from 10-K |
+| `HAS_DOMAIN` | Company → Domain | 3,745 | Company website |
+| `HAS_SUPPLIER` | Company → Company | 2,597 | Extracted from 10-K |
+| `HAS_PARTNER` | Company → Company | 2,139 | Extracted from 10-K |
+| `HAS_CUSTOMER` | Company → Company | 1,714 | Extracted from 10-K |
 
 For complete schema documentation, see [docs/graph_schema.md](docs/graph_schema.md).
 
