@@ -349,7 +349,7 @@ pre-commit run --all-files
 
 ## Acknowledgments
 
-- **[datamule](https://github.com/john-friedman/datamule-python)** by John Friedman - SEC filing download and parsing
+- **[datamule](https://datamule.xyz)** by John Friedman - SEC filing download and parsing
 - **[CompanyKG paper](https://arxiv.org/abs/2306.10649)** - Inspiration for company knowledge graph design
 - **[Neo4j](https://neo4j.com)** - Graph database and GDS library
 - **[domain_status](https://github.com/alexwoolford/domain_status)** - Rust-based technology detection
