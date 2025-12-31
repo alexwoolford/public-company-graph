@@ -62,36 +62,34 @@ Using Neo4j Graph Data Science (GDS):
 ## Graph Schema Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         PUBLIC COMPANY GRAPH                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  ┌──────────┐     HAS_DOMAIN      ┌────────┐      USES      ┌────────┐ │
-│  │ Company  │ ─────────────────▶  │ Domain │ ────────────▶  │  Tech  │ │
-│  │  (5,398) │                     │(4,337) │                │ (827)  │ │
-│  └──────────┘                     └────────┘                └────────┘ │
-│       │                                │                         │      │
-│       │ HAS_COMPETITOR (3,843)         │ LIKELY_TO_ADOPT        │      │
-│       │ HAS_CUSTOMER (1,714)           │ (41,250)               │      │
-│       │ HAS_SUPPLIER (2,597)           │                        │      │
-│       │ HAS_PARTNER (2,139)            │                   CO_OCCURS   │
-│       │                                │                   (41,220)    │
-│       ▼                                ▼                        ▼      │
-│  ┌──────────┐                     ┌────────┐                ┌────────┐ │
-│  │ Company  │                     │ Domain │                │  Tech  │ │
-│  └──────────┘                     └────────┘                └────────┘ │
-│       │                                                                 │
-│       │ SIMILAR_DESCRIPTION (420,531)                                  │
-│       │ SIMILAR_INDUSTRY (520,672)                                     │
-│       │ SIMILAR_SIZE (414,096)                                         │
-│       │ SIMILAR_RISK (394,372)                                         │
-│       │ SIMILAR_TECHNOLOGY (124,584)                                   │
-│       ▼                                                                 │
-│  ┌──────────┐                                                          │
-│  │ Company  │                                                          │
-│  └──────────┘                                                          │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+                           PUBLIC COMPANY GRAPH
+  ╔═══════════════════════════════════════════════════════════════════════╗
+  ║                                                                       ║
+  ║    ┌───────────┐         ┌──────────┐         ┌────────────┐         ║
+  ║    │  Company  │─HAS_DOMAIN─▶│  Domain  │───USES───▶│ Technology │         ║
+  ║    │  (5,398)  │  (3,745)  │  (4,337)  │ (46,081) │   (827)    │         ║
+  ║    └───────────┘         └──────────┘         └────────────┘         ║
+  ║          │                     │                     │               ║
+  ║          │                     │                     │               ║
+  ║  Business Relationships  LIKELY_TO_ADOPT      CO_OCCURS_WITH         ║
+  ║  ─────────────────────     (41,250)            (41,220)              ║
+  ║  • HAS_COMPETITOR (3,843)      │                     │               ║
+  ║  • HAS_SUPPLIER   (2,597)      ▼                     ▼               ║
+  ║  • HAS_PARTNER    (2,139)  ┌──────────┐         ┌────────────┐         ║
+  ║  • HAS_CUSTOMER   (1,714)  │ Technology│         │ Technology │         ║
+  ║          │                 └──────────┘         └────────────┘         ║
+  ║          ▼                                                            ║
+  ║    ┌───────────┐                                                      ║
+  ║    │  Company  │ ◀───────── Similarity Relationships ──────────▶     ║
+  ║    └───────────┘                                                      ║
+  ║                                                                       ║
+  ║    SIMILAR_INDUSTRY     (520,672)   Same sector/industry              ║
+  ║    SIMILAR_DESCRIPTION  (436,973)   Cosine similarity on embeddings   ║
+  ║    SIMILAR_SIZE         (414,096)   Revenue/market cap buckets        ║
+  ║    SIMILAR_RISK         (394,372)   Risk factor embedding similarity  ║
+  ║    SIMILAR_TECHNOLOGY   (124,584)   Jaccard on tech stacks            ║
+  ║                                                                       ║
+  ╚═══════════════════════════════════════════════════════════════════════╝
 ```
 
 For complete schema documentation, see [docs/graph_schema.md](docs/graph_schema.md).

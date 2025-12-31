@@ -46,15 +46,27 @@ The Public Company Graph is a knowledge graph modeling **public companies**, the
 
 | Metric | Count |
 |--------|-------|
-| **Total Nodes** | ~10,562 |
+| **Total Nodes** | 10,562 |
 | - Company | 5,398 |
 | - Domain | 4,337 |
 | - Technology | 827 |
-| **Total Relationships** | ~2,013,922 |
-| - Similarity relationships | ~1,874,333 |
-| - Business relationships | ~10,293 |
-| - Technology relationships | ~128,585 |
-| - Domain-Company links | ~3,745 |
+| **Total Relationships** | ~2,033,384 |
+| - Similarity relationships | 1,890,697 |
+|   - SIMILAR_INDUSTRY | 520,672 |
+|   - SIMILAR_DESCRIPTION | 436,973 |
+|   - SIMILAR_SIZE | 414,096 |
+|   - SIMILAR_RISK | 394,372 |
+|   - SIMILAR_TECHNOLOGY | 124,584 |
+| - Business relationships | 10,293 |
+|   - HAS_COMPETITOR | 3,843 |
+|   - HAS_SUPPLIER | 2,597 |
+|   - HAS_PARTNER | 2,139 |
+|   - HAS_CUSTOMER | 1,714 |
+| - Technology relationships | 128,551 |
+|   - USES | 46,081 |
+|   - LIKELY_TO_ADOPT | 41,250 |
+|   - CO_OCCURS_WITH | 41,220 |
+| - Domain-Company links | 3,745 |
 
 ---
 

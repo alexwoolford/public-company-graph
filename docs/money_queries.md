@@ -7,7 +7,7 @@ This document provides **practical queries** that have been tested against the a
 | Relationship Type | Count | Notes |
 |-------------------|-------|-------|
 | SIMILAR_INDUSTRY | 520,672 | Based on sector/industry classification |
-| SIMILAR_DESCRIPTION | 420,531 | Cosine similarity of business descriptions |
+| SIMILAR_DESCRIPTION | 436,973 | Cosine similarity of business descriptions |
 | SIMILAR_SIZE | 414,096 | Revenue/market cap buckets |
 | SIMILAR_RISK | 394,372 | Risk factor embedding similarity |
 | SIMILAR_TECHNOLOGY | 124,584 | Jaccard similarity of web tech stacks |
@@ -22,9 +22,9 @@ This document provides **practical queries** that have been tested against the a
 
 ### Data Coverage Notes
 
-- **5,191 of 5,398 companies** have business descriptions and embeddings
-- **~82% of companies** have NULL sector/industry (use description similarity instead)
-- **~18% of companies** have market_cap data
+- **5,390 of 5,398 companies** (99.85%) have business descriptions and embeddings
+- **~18% of companies** have sector/industry from Yahoo Finance
+- **~18% of companies** have market_cap data from Yahoo Finance
 - **Technology data is web technologies only** (JavaScript, CMS, Analytics, CDN, etc.)—not backend infrastructure
 
 ---
@@ -131,6 +131,74 @@ LIMIT 10
 ```
 
 **Expected results**: Gen Digital, Cloudflare, Meta, Box, Yext, Duolingo.
+
+### ⭐ Weighted Multi-Dimensional Similarity (Best Query)
+
+Combine all similarity dimensions with configurable weights to find the "most similar" company overall:
+
+```cypher
+// Find most similar companies using weighted multi-dimensional similarity
+// Weights: description (40%), industry (20%), risk (20%), technology (10%), size (10%)
+
+MATCH (target:Company {ticker: 'AAPL'})
+
+// Collect all similarity scores
+OPTIONAL MATCH (target)-[desc:SIMILAR_DESCRIPTION]->(c:Company)
+OPTIONAL MATCH (target)-[ind:SIMILAR_INDUSTRY]->(c)
+OPTIONAL MATCH (target)-[risk:SIMILAR_RISK]->(c)
+OPTIONAL MATCH (target)-[tech:SIMILAR_TECHNOLOGY]->(c)
+OPTIONAL MATCH (target)-[size:SIMILAR_SIZE]->(c)
+
+WITH c,
+     COALESCE(desc.score, 0) AS desc_score,
+     COALESCE(ind.score, 0) AS ind_score,
+     COALESCE(risk.score, 0) AS risk_score,
+     COALESCE(tech.score, 0) AS tech_score,
+     COALESCE(size.score, 0) AS size_score
+WHERE c IS NOT NULL
+
+// Calculate weighted composite score
+WITH c,
+     desc_score, ind_score, risk_score, tech_score, size_score,
+     (desc_score * 0.4) +
+     (ind_score * 0.2) +
+     (risk_score * 0.2) +
+     (tech_score * 0.1) +
+     (size_score * 0.1) AS weighted_score,
+     // Count how many dimensions matched (bonus for well-rounded similarity)
+     CASE WHEN desc_score > 0 THEN 1 ELSE 0 END +
+     CASE WHEN ind_score > 0 THEN 1 ELSE 0 END +
+     CASE WHEN risk_score > 0 THEN 1 ELSE 0 END +
+     CASE WHEN tech_score > 0 THEN 1 ELSE 0 END +
+     CASE WHEN size_score > 0 THEN 1 ELSE 0 END AS dimensions_matched
+
+WHERE weighted_score > 0.3  // Minimum threshold
+
+RETURN c.ticker AS ticker,
+       c.name AS company,
+       c.sector AS sector,
+       round(weighted_score * 100) / 100 AS weighted_similarity,
+       dimensions_matched,
+       round(desc_score * 100) / 100 AS description,
+       round(ind_score * 100) / 100 AS industry,
+       round(risk_score * 100) / 100 AS risk,
+       round(tech_score * 100) / 100 AS technology,
+       round(size_score * 100) / 100 AS size
+ORDER BY weighted_score DESC
+LIMIT 15
+```
+
+**Why this works well:**
+- **Description similarity (40%)**: Most reliable signal, 99.85% coverage
+- **Industry similarity (20%)**: Strong categorical match
+- **Risk similarity (20%)**: Companies facing similar challenges
+- **Technology similarity (10%)**: Lower weight due to web-only data
+- **Size similarity (10%)**: Lower weight due to 18% coverage
+
+**Adjust weights based on your use case:**
+- M&A: Increase size weight (companies buy similar-sized targets)
+- Competitive analysis: Increase description + technology weights
+- Risk analysis: Increase risk weight significantly
 
 ---
 
