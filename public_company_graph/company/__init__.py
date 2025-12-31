@@ -25,6 +25,14 @@ from public_company_graph.company.enrichment import (
     merge_company_data,
     normalize_industry_codes,
 )
+from public_company_graph.company.explain import (
+    SimilarityDimension,
+    SimilarityEvidence,
+    SimilarityExplanation,
+    explain_similarity,
+    explain_similarity_to_dict,
+    format_explanation_text,
+)
 from public_company_graph.company.queries import (
     DEFAULT_SIMILARITY_WEIGHTS,
     SHARED_TECHNOLOGY_WEIGHT,
@@ -61,4 +69,11 @@ __all__ = [
     # Helper functions (execute queries directly)
     "find_similar_companies",
     "get_similarity_breakdown",
+    # Explainable similarity (P42/P43 research)
+    "SimilarityDimension",
+    "SimilarityEvidence",
+    "SimilarityExplanation",
+    "explain_similarity",
+    "explain_similarity_to_dict",
+    "format_explanation_text",
 ]

@@ -271,11 +271,13 @@ All scripts support `--help` and follow a dry-run pattern (omit `--execute` to s
 
 ```cypher
 MATCH (apple:Company {ticker: 'AAPL'})-[r:SIMILAR_DESCRIPTION]->(similar:Company)
-WHERE r.score > 0.85
+WHERE r.score > 0.70
 RETURN similar.ticker, similar.name, similar.sector, r.score
 ORDER BY r.score DESC
 LIMIT 10
 ```
+
+**Expected result**: Jamf (0.76), FormFactor (0.74), Western Digital (0.73), Microsoft (0.72), etc.
 
 ### Map NVIDIA's Competitive Landscape
 
@@ -307,6 +309,33 @@ ORDER BY r.score DESC
 LIMIT 10
 ```
 
+### Explain Why Companies Are Similar
+
+Use the CLI tool for human-readable explanations:
+
+```bash
+# Explain KO vs PEP similarity
+python scripts/explain_similarity.py KO PEP
+
+# Output as JSON (for APIs)
+python scripts/explain_similarity.py NVDA AMD --json
+```
+
+Or use the Python API:
+
+```python
+from public_company_graph.company import explain_similarity
+from public_company_graph.neo4j.connection import get_neo4j_driver
+from public_company_graph.config import get_neo4j_database
+
+driver = get_neo4j_driver()
+explanation = explain_similarity(driver, "KO", "PEP", database=get_neo4j_database())
+print(explanation.summary)
+# "COCA COLA CO and PEPSICO INC have 87% similar business descriptions,
+#  face 87% similar risk factors, and operate in the same industry."
+driver.close()
+```
+
 For more queries, see [docs/money_queries.md](docs/money_queries.md).
 
 ---
@@ -331,8 +360,10 @@ public-company-graph/
 ├── tests/                       # Test suite (unit + integration)
 ├── docs/                        # Documentation
 │   ├── graph_schema.md          # Complete schema reference
+│   ├── money_queries.md         # High-value Cypher queries + explainable similarity
 │   ├── architecture.md          # Package architecture
-│   └── money_queries.md         # High-value Cypher queries
+│   ├── research_enhancements.md # Research-backed feature roadmap
+│   └── ...                      # See docs/README.md for full list
 └── data/                        # Data files (git-ignored)
     ├── domain_status.db         # Technology detection results
     ├── 10k_filings/             # Downloaded 10-K HTML files
@@ -360,9 +391,11 @@ public-company-graph/
 | Document | Description |
 |----------|-------------|
 | [docs/graph_schema.md](docs/graph_schema.md) | Complete graph schema with all nodes, relationships, and properties |
+| [docs/money_queries.md](docs/money_queries.md) | High-value Cypher queries including **explainable similarity** |
 | [docs/architecture.md](docs/architecture.md) | Package architecture and design principles |
-| [docs/money_queries.md](docs/money_queries.md) | High-value Cypher queries for business intelligence |
+| [docs/step_by_step_guide.md](docs/step_by_step_guide.md) | Complete pipeline walkthrough |
 | [docs/10k_parsing.md](docs/10k_parsing.md) | 10-K parsing pipeline details |
+| [docs/research_enhancements.md](docs/research_enhancements.md) | Research-backed feature roadmap |
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | Detailed setup instructions |
 
 ---

@@ -298,7 +298,7 @@ LIMIT 15
 ### Find semiconductor companies with similar risk profiles
 
 ```cypher
-MATCH (target:Company {ticker: 'INTC'})-[r:SIMILAR_RISK]->(similar:Company)
+MATCH (target:Company {ticker: 'NVDA'})-[r:SIMILAR_RISK]->(similar:Company)
 WHERE r.score > 0.85
 RETURN similar.ticker, similar.name,
        round(r.score * 100) / 100 AS risk_similarity
@@ -415,6 +415,111 @@ Technology detection is based on **HTTP fingerprinting** of company domains. Thi
 
 ### Technology Predictions
 `LIKELY_TO_ADOPT` predictions only exist for domains with limited technology stacks. Large tech companies already use many technologies, so predictions aren't computed for them.
+
+---
+
+---
+
+## 8. Explainable Similarity
+
+When similarity scores aren't enough, use **explainable similarity** to understand *why* companies are similar.
+
+### CLI Tool: explain_similarity.py
+
+```bash
+# Text output (human-readable)
+python scripts/explain_similarity.py KO PEP
+
+# JSON output (for APIs/scripts)
+python scripts/explain_similarity.py NVDA AMD --json
+
+# Verbose mode (includes raw scores)
+python scripts/explain_similarity.py AAPL MSFT --verbose
+```
+
+### Example Output
+
+```
+======================================================================
+SIMILARITY EXPLANATION: NVDA vs AMD
+======================================================================
+
+Companies: NVIDIA CORP ↔ ADVANCED MICRO DEVICES INC
+Total Score: 5.972 (Confidence: high)
+
+SUMMARY
+----------------------------------------
+NVIDIA CORP and ADVANCED MICRO DEVICES INC are direct competitors,
+face 91% similar risk factors, and have 80% similar business descriptions.
+
+FEATURE BREAKDOWN
+----------------------------------------
+  [████████████████████████████████████████] COMPETITOR: 1.00
+           └─ Direct competitor relationship cited in 10-K filings (100% confidence)
+  [███████░░░] RISK: 0.91
+           └─ Risk factor profiles are 91% similar
+  [██████░░░░] DESCRIPTION: 0.80
+           └─ Business descriptions are 80% similar
+  [██████░░░░] INDUSTRY: 1.00
+           └─ Same SIC code (3674) - strong industry match
+
+PATH EVIDENCE
+----------------------------------------
+  • Both companies use: Akamai, Java, Adobe Experience Manager
+  • Both cited as competitors by: MBLY, AVGO
+  • Both source from: INTC, MSFT, AVGO
+
+TOP REASONS
+----------------------------------------
+  1. Direct competitor relationship cited in 10-K filings (100% confidence)
+  2. Risk factor profiles are 91% similar
+  3. Business descriptions are 80% similar
+======================================================================
+```
+
+### Python API
+
+```python
+from public_company_graph.company import explain_similarity, explain_similarity_to_dict
+from public_company_graph.config import get_neo4j_database
+from public_company_graph.neo4j.connection import get_neo4j_driver
+
+driver = get_neo4j_driver()
+db = get_neo4j_database()
+
+# Get structured explanation
+explanation = explain_similarity(driver, "KO", "PEP", database=db)
+print(f"Total score: {explanation.total_score}")
+print(f"Confidence: {explanation.confidence}")
+print(f"Summary: {explanation.summary}")
+
+for evidence in explanation.feature_breakdown:
+    print(f"  {evidence.dimension.name}: {evidence.score:.2f} - {evidence.explanation}")
+
+# Get JSON-serializable dict (for APIs)
+result = explain_similarity_to_dict(driver, "NVDA", "AMD", database=db)
+
+driver.close()
+```
+
+### What Gets Explained
+
+| Dimension | Weight | Description |
+|-----------|--------|-------------|
+| `COMPETITOR` | 4.0 | Direct competitor relationship from 10-K |
+| `DESCRIPTION` | 0.8 | Business description embedding similarity |
+| `RISK` | 0.8 | Risk factor embedding similarity |
+| `INDUSTRY` | 0.6 | Same SIC code / industry / sector |
+| `TECHNOLOGY` | 0.3 | Shared web technologies (via domains) |
+| `SIZE` | 0.2 | Similar revenue / market cap bucket |
+
+### Path Evidence Types
+
+- **Shared Technologies**: Web technologies both companies use
+- **Common Competitor Cites**: Companies that cite both as competitors
+- **Shared Competitors**: Companies both cite as competitors
+- **Shared Customers**: Companies both sell to
+- **Shared Suppliers**: Companies both source from
 
 ---
 

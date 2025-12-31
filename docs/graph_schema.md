@@ -292,6 +292,12 @@ RETURN supp.name, r.raw_mention
 
 ### Similarity Relationships
 
+> **💡 Tip**: For human-readable explanations of why two companies are similar, use the CLI tool:
+> ```bash
+> python scripts/explain_similarity.py KO PEP
+> ```
+> See [money_queries.md](money_queries.md#8-explainable-similarity) for details.
+
 #### SIMILAR_DESCRIPTION
 
 **Pattern**: `(Company)-[:SIMILAR_DESCRIPTION]->(Company)`
