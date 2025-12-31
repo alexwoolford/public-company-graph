@@ -61,36 +61,43 @@ Using Neo4j Graph Data Science (GDS):
 
 ## Graph Schema Overview
 
+```mermaid
+graph LR
+    subgraph Nodes
+        C[Company<br/>5,398]
+        D[Domain<br/>4,337]
+        T[Technology<br/>827]
+    end
+
+    C -->|HAS_DOMAIN<br/>3,745| D
+    D -->|USES<br/>46,081| T
+    D -.->|LIKELY_TO_ADOPT<br/>41,250| T
+    T -.->|CO_OCCURS_WITH<br/>41,220| T
+
+    subgraph "Company→Company"
+        C -->|HAS_COMPETITOR| C
+        C -->|HAS_SUPPLIER| C
+        C -->|HAS_CUSTOMER| C
+        C -->|HAS_PARTNER| C
+        C -.->|SIMILAR_DESCRIPTION| C
+        C -.->|SIMILAR_INDUSTRY| C
+        C -.->|SIMILAR_SIZE| C
+        C -.->|SIMILAR_RISK| C
+        C -.->|SIMILAR_TECHNOLOGY| C
+    end
 ```
-                           PUBLIC COMPANY GRAPH
-  ╔═══════════════════════════════════════════════════════════════════════╗
-  ║                                                                       ║
-  ║    ┌───────────┐         ┌──────────┐         ┌────────────┐         ║
-  ║    │  Company  │─HAS_DOMAIN─▶│  Domain  │───USES───▶│ Technology │         ║
-  ║    │  (5,398)  │  (3,745)  │  (4,337)  │ (46,081) │   (827)    │         ║
-  ║    └───────────┘         └──────────┘         └────────────┘         ║
-  ║          │                     │                     │               ║
-  ║          │                     │                     │               ║
-  ║  Business Relationships  LIKELY_TO_ADOPT      CO_OCCURS_WITH         ║
-  ║  ─────────────────────     (41,250)            (41,220)              ║
-  ║  • HAS_COMPETITOR (3,843)      │                     │               ║
-  ║  • HAS_SUPPLIER   (2,597)      ▼                     ▼               ║
-  ║  • HAS_PARTNER    (2,139)  ┌──────────┐         ┌────────────┐         ║
-  ║  • HAS_CUSTOMER   (1,714)  │ Technology│         │ Technology │         ║
-  ║          │                 └──────────┘         └────────────┘         ║
-  ║          ▼                                                            ║
-  ║    ┌───────────┐                                                      ║
-  ║    │  Company  │ ◀───────── Similarity Relationships ──────────▶     ║
-  ║    └───────────┘                                                      ║
-  ║                                                                       ║
-  ║    SIMILAR_INDUSTRY     (520,672)   Same sector/industry              ║
-  ║    SIMILAR_DESCRIPTION  (436,973)   Cosine similarity on embeddings   ║
-  ║    SIMILAR_SIZE         (414,096)   Revenue/market cap buckets        ║
-  ║    SIMILAR_RISK         (394,372)   Risk factor embedding similarity  ║
-  ║    SIMILAR_TECHNOLOGY   (124,584)   Jaccard on tech stacks            ║
-  ║                                                                       ║
-  ╚═══════════════════════════════════════════════════════════════════════╝
-```
+
+| Relationship | Count | Description |
+|--------------|-------|-------------|
+| SIMILAR_INDUSTRY | 520,672 | Same sector/industry |
+| SIMILAR_DESCRIPTION | 436,973 | Embedding cosine similarity |
+| SIMILAR_SIZE | 414,096 | Revenue/market cap buckets |
+| SIMILAR_RISK | 394,372 | Risk factor similarity |
+| SIMILAR_TECHNOLOGY | 124,584 | Jaccard on tech stacks |
+| HAS_COMPETITOR | 3,843 | Cited in 10-K |
+| HAS_SUPPLIER | 2,597 | Cited in 10-K |
+| HAS_PARTNER | 2,139 | Cited in 10-K |
+| HAS_CUSTOMER | 1,714 | Cited in 10-K |
 
 For complete schema documentation, see [docs/graph_schema.md](docs/graph_schema.md).
 
