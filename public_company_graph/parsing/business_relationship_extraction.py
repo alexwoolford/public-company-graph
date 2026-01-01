@@ -390,6 +390,14 @@ NAME_BLOCKLIST = {
     "service",
     "services",
     "solution",
+    # Common words that match company names (discovered via ground truth analysis)
+    "target",  # Goal/objective, not Target Corp - high false positive rate
+    "comstock",  # Power plant names, geographic locations - not Comstock Inc
+    "enact",  # Verb meaning "to make law" - not Enact Holdings
+    # Exchange/listing venue names (these refer to the exchange, not the company)
+    "nasdaq",  # Stock exchange listings like "NASDAQ: AAPL"
+    "nyse",  # NYSE listings
+    "new york stock exchange",
     "solutions",
     "system",
     "systems",
