@@ -25,6 +25,8 @@ class FilterReason(Enum):
     COMMON_WORD = "common_word"
     SELF_REFERENCE = "self_reference"
     NEGATION_CONTEXT = "negation_context"
+    BIOGRAPHICAL_CONTEXT = "biographical_context"  # Director/employee mentions
+    EXCHANGE_REFERENCE = "exchange_reference"  # Stock exchange listings
 
 
 @dataclass(frozen=True)
@@ -271,6 +273,154 @@ class NegationContextFilter(CandidateFilter):
         )
 
 
+class BiographicalContextFilter(CandidateFilter):
+    """
+    Filters candidates that appear in biographical/director context.
+
+    These are mentions of companies where executives previously worked or
+    serve as directors - NOT business relationships.
+
+    Based on error analysis of ground truth data:
+    - #4 Celestica: director's other board seat
+    - #6 AmEx: executive's prior employer
+    - #10 Honeywell: prior employer
+    - #11 Chevron: past employer
+    - #12 Air Industries: director's other board seat
+    """
+
+    # Patterns that indicate biographical context (not business relationships)
+    BIOGRAPHICAL_PATTERNS = [
+        # Director/board relationships
+        r"\bserves?\s+(?:as\s+)?(?:a\s+)?director\b",
+        r"\bdirector\s+(?:of|for|at)\b",
+        r"\bboard\s+(?:of\s+directors|member|seat)\b",
+        r"\bother\s+directorships?\b",
+        r"\boutside\s+director\b",
+        r"\bindependent\s+director\b",
+        # Employment history
+        r"\bprior\s+to\s+joining\b",
+        r"\bpreviously\s+(?:at|with|served)\b",
+        r"\bformerly\s+(?:at|with|of)\b",
+        r"\bformer\s+(?:executive|officer|president|ceo|cfo|coo)\b",
+        r"\bpast\s+(?:employer|experience|position)\b",
+        r"\bwork(?:ed)?\s+(?:at|for|with)\b.{0,30}\b(?:before|prior|previously)\b",
+        r"\b(?:his|her|their)\s+(?:prior|previous|past)\s+(?:experience|role|position)\b",
+        r"\bexperience\s+includes?\b",
+        r"\bcareer\s+(?:at|with|includes?)\b",
+        r"\bjoined\s+(?:us|the\s+company)\s+from\b",
+        r"\bcame\s+to\s+(?:us|the\s+company)\s+from\b",
+        # Biographical sections
+        r"\bbiographical\b",
+        r"\bbackground\s+(?:of|includes?)\b",
+        r"\bresume\b",
+        r"\bcurriculum\s+vitae\b",
+    ]
+
+    def __init__(self, patterns: list[str] | None = None, window_size: int = 200):
+        """
+        Initialize with optional custom patterns.
+
+        Args:
+            patterns: List of regex patterns indicating biographical context
+            window_size: Characters around mention to check for patterns
+        """
+        import re
+
+        if patterns is not None:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        else:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in self.BIOGRAPHICAL_PATTERNS]
+        self.window_size = window_size
+
+    @property
+    def name(self) -> str:
+        return "biographical_context"
+
+    def filter(self, candidate: Candidate, context: dict | None = None) -> FilterResult:
+        """Filter if candidate appears in biographical context."""
+        # Check the sentence containing the mention
+        text_to_check = candidate.sentence.lower()
+
+        # Also check surrounding context if available
+        if hasattr(candidate, "context") and candidate.context:
+            text_to_check = f"{text_to_check} {candidate.context.lower()}"
+
+        for pattern in self.patterns:
+            if pattern.search(text_to_check):
+                return FilterResult(
+                    candidate=candidate,
+                    passed=False,
+                    reason=FilterReason.BIOGRAPHICAL_CONTEXT,
+                    filter_name=self.name,
+                )
+
+        return FilterResult(
+            candidate=candidate,
+            passed=True,
+            reason=FilterReason.PASSED,
+            filter_name=self.name,
+        )
+
+
+class ExchangeReferenceFilter(CandidateFilter):
+    """
+    Filters candidates that are stock exchange references, not company mentions.
+
+    Based on error analysis:
+    - #17 'Nasdaq' = exchange listing venue
+    - #23 'Wayfair' = Supreme Court case name
+    - #25 'NASDAQ: EKSO' = ticker notation
+    """
+
+    EXCHANGE_PATTERNS = [
+        # Ticker notation: "NASDAQ: AAPL", "NYSE: IBM"
+        r"\b(?:NASDAQ|NYSE|AMEX|OTC)\s*:\s*[A-Z]{1,5}\b",
+        # Listed on exchange
+        r"\blisted\s+on\s+(?:the\s+)?(?:NASDAQ|NYSE)\b",
+        r"\btraded\s+on\s+(?:the\s+)?(?:NASDAQ|NYSE)\b",
+        r"\btrading\s+on\s+(?:the\s+)?(?:NASDAQ|NYSE)\b",
+        # Exchange as venue
+        r"\b(?:NASDAQ|NYSE)\s+(?:stock\s+)?(?:market|exchange)\b",
+        r"\bsecurities\s+(?:trade|traded|trading)\s+on\b",
+        # Legal case references
+        r"\bv\.\s+\w+(?:,?\s+Inc\.?)?\s+\(",  # "v. Wayfair, Inc. (2018)"
+        r"\bSupreme\s+Court\b.{0,50}\bv\.\b",
+    ]
+
+    def __init__(self, patterns: list[str] | None = None):
+        """Initialize with optional custom patterns."""
+        import re
+
+        if patterns is not None:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        else:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in self.EXCHANGE_PATTERNS]
+
+    @property
+    def name(self) -> str:
+        return "exchange_reference"
+
+    def filter(self, candidate: Candidate, context: dict | None = None) -> FilterResult:
+        """Filter if candidate is an exchange reference."""
+        text_to_check = candidate.sentence
+
+        for pattern in self.patterns:
+            if pattern.search(text_to_check):
+                return FilterResult(
+                    candidate=candidate,
+                    passed=False,
+                    reason=FilterReason.EXCHANGE_REFERENCE,
+                    filter_name=self.name,
+                )
+
+        return FilterResult(
+            candidate=candidate,
+            passed=True,
+            reason=FilterReason.PASSED,
+            filter_name=self.name,
+        )
+
+
 class SelfReferenceFilter(CandidateFilter):
     """
     Filters out self-references (the company mentioning itself).
@@ -346,6 +496,8 @@ def filter_candidate(
             TickerBlocklistFilter(),
             NameBlocklistFilter(),
             LengthFilter(),
+            BiographicalContextFilter(),
+            ExchangeReferenceFilter(),
         ]
 
     for f in filters:
@@ -378,6 +530,8 @@ def filter_candidates_with_stats(
             TickerBlocklistFilter(),
             NameBlocklistFilter(),
             LengthFilter(),
+            BiographicalContextFilter(),
+            ExchangeReferenceFilter(),
         ]
 
     passed: list[Candidate] = []
