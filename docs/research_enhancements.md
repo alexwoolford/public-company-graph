@@ -10,7 +10,7 @@ This document outlines enhancements to the Public Company Graph inspired by acad
 |----------|-------------|--------|--------|----------------|
 | **1** | Supply Chain Risk Scoring | P25, P26 | ✅ Complete | Supply chain due diligence |
 | **2** | Risk Profile Convergence | P19 | ⏸️ Blocked | Requires historical 10-Ks (we only have latest) |
-| **3** | Entity Resolution Improvement | P39, P40 | 🔲 Planned | Data quality improvement |
+| **3** | Entity Resolution Improvement | P39, P40, P58, P62 | ✅ Complete | Data quality improvement |
 | **4** | Explainable Similarity | P42, P43 | ✅ Complete | User trust & interpretability |
 | **5** | Institutional Ownership Links | P32 | 🔲 Planned | Common owner effects |
 
@@ -152,88 +152,99 @@ RETURN a.ticker as potential_acquirer, b.ticker as potential_target, r.delta
 
 ---
 
-## Enhancement 3: Entity Resolution Improvement
+## Enhancement 3: Entity Resolution Improvement ✅
 
 ### Research Foundation
 - **P39**: Mudgal et al. (2018) "Deep Learning for Entity Matching"
 - **P40**: Li et al. (2020) "Ditto: A Fine-Tuned Transformer for Entity Matching"
+- **P58**: Zeakis et al. (2023) "Pre-trained Embeddings for Entity Resolution" - **NEW**
+- **P62**: JEL/JPMorgan (2021) "End-to-End Neural Entity Linking" - **NEW**
 
 ### Key Insights
 1. **Current approach**: String matching + rules for company mentions in 10-K
 2. **Problem**: Many mentions are ambiguous ("Apple" could be AAPL or a fruit company)
-3. **Solution**: Use transformer embeddings to score match confidence
+3. **Solution**: "Wide & Deep" approach combining character n-grams with semantic embeddings
 
-### Implementation Plan
+### Implementation (Completed)
 
-#### Phase 1: Improve Mention Extraction
-Enhance `business_relationship_extraction.py`:
-
-```python
-def match_company_mention(mention: str, candidates: list[Company]) -> tuple[Company, float]:
-    """
-    Use embedding similarity to match mentions to companies.
-
-    Returns:
-        (matched_company, confidence_score)
-    """
-    mention_embedding = get_embedding(mention)
-
-    scores = []
-    for candidate in candidates:
-        # Combine name similarity + description similarity
-        name_sim = cosine_similarity(mention_embedding, get_embedding(candidate.name))
-        desc_sim = cosine_similarity(mention_embedding, candidate.description_embedding)
-        combined = 0.7 * name_sim + 0.3 * desc_sim
-        scores.append((candidate, combined))
-
-    return max(scores, key=lambda x: x[1])
-```
-
-#### Phase 2: Add Context-Aware Matching
-Use surrounding text to disambiguate:
+#### Wide Component: Character N-gram Similarity
+Handles name variations like "PayPal Holdings" vs "PYPL" vs "Paypal Inc":
 
 ```python
-def match_with_context(mention: str, context: str, candidates: list[Company]) -> tuple[Company, float]:
-    """
-    Include context (surrounding paragraph) in matching.
+from public_company_graph.entity_resolution import CharacterMatcher, ngram_similarity
 
-    "Apple announced..." in a tech context → AAPL
-    "Apple orchards..." in agriculture context → different company
-    """
-    context_embedding = get_embedding(f"{mention}: {context}")
-    # ... score against candidate descriptions
+matcher = CharacterMatcher()
+score = matcher.score("Microsoft", "Microsoft Corporation")
+# Returns CharacterScore with Jaccard n-gram similarity
 ```
 
-#### Phase 3: Confidence Tier Improvement
-Update relationship properties with better confidence:
+**Module**: `public_company_graph/entity_resolution/character.py`
 
-```cypher
-// Current
-{confidence: 0.85, confidence_tier: 'high'}
+#### Deep Component: Semantic Embedding Similarity
+Uses existing company description embeddings for context disambiguation:
 
-// Enhanced
-{
-  confidence: 0.92,
-  confidence_tier: 'high',
-  match_method: 'transformer_similarity',
-  name_score: 0.95,
-  context_score: 0.88,
-  alternatives_considered: 3
-}
+```python
+from public_company_graph.entity_resolution import SemanticScorer
+
+scorer = SemanticScorer(get_embedding_fn=openai_client.get_embedding)
+result = scorer.score(
+    mention="Apple",
+    context="They compete with Apple in the smartphone market.",
+    candidate_embedding=company.description_embedding,
+    candidate_name="Apple Inc.",
+    relationship_type="competitor"
+)
+# Returns SemanticScore with cosine similarity
 ```
 
-### Business Queries Enabled
-```cypher
-// "Show me lower-confidence relationships that need review"
-MATCH (c:Company)-[r:HAS_COMPETITOR]->(comp:Company)
-WHERE r.confidence < 0.7 AND r.match_method = 'transformer_similarity'
-RETURN c.ticker, comp.ticker, r.raw_mention, r.confidence, r.alternatives_considered
-ORDER BY r.confidence ASC
+**Module**: `public_company_graph/entity_resolution/semantic.py`
+
+#### Combined Wide & Deep Scoring
+Integrates both components for final confidence:
+
+```python
+from public_company_graph.entity_resolution import CombinedScorer, create_scorer
+
+scorer = create_scorer(get_embedding_fn=openai_client.get_embedding)
+result = scorer.score(
+    mention="Apple",
+    context="Tech company context...",
+    candidate_ticker="AAPL",
+    candidate_name="Apple Inc.",
+    candidate_embedding=company_embedding
+)
+# Returns CombinedScore with:
+# - final_score: Weighted combination
+# - confidence_tier: HIGH/MEDIUM/LOW
+# - character_score, semantic_score: Component scores
+# - is_exact_ticker, is_exact_name: Bonus flags
 ```
+
+**Module**: `public_company_graph/entity_resolution/combined_scorer.py`
+
+### Evaluation Framework
+
+#### Ground Truth Creation
+```bash
+python scripts/create_er_ground_truth.py --output data/er_ground_truth.csv --sample-size 100
+```
+
+#### Evaluation
+```bash
+python scripts/evaluate_er.py --ground-truth data/er_ground_truth.csv --analyze-errors
+```
+
+**Metrics**: Precision, Recall, F1 by confidence tier and relationship type
+
+### Test Coverage
+- 53 new tests for character and semantic similarity
+- Tests in `tests/unit/test_character_similarity.py`
+- Tests in `tests/unit/test_semantic_similarity.py`
 
 ### Data Requirements
-- Existing: Company name, ticker, description embeddings
-- Enhancement: Embeddings for company mentions and context windows
+- ✅ Existing: Company description embeddings (5,390 companies)
+- ✅ Existing: OpenAI embedding API access
+- ✅ New: N-gram similarity module (no additional data needed)
 
 ---
 
@@ -412,12 +423,12 @@ ORDER BY h1.value + h2.value DESC
 
 ### Phase 1: Quick Wins (Week 1-2)
 1. ✅ Create this documentation
-2. 🔲 Enhancement 2: Risk convergence (uses existing data)
+2. ⏸️ Enhancement 2: Risk convergence - **BLOCKED** (no historical 10-Ks)
 3. ✅ Enhancement 4: Explainable similarity function
 
 ### Phase 2: Data Enrichment (Week 3-4)
 4. ✅ Enhancement 1: Supply chain risk properties
-5. 🔲 Enhancement 3: Entity resolution improvement
+5. ✅ Enhancement 3: Entity resolution improvement (Wide & Deep scoring)
 
 ### Phase 3: New Data Sources (Week 5+)
 6. 🔲 Enhancement 5: Institutional ownership (requires 13-F parsing)
@@ -428,13 +439,17 @@ ORDER BY h1.value + h2.value DESC
 
 | File | Purpose |
 |------|---------|
-| `papers/papers_manifest.json` | Full paper metadata |
+| `papers/papers_manifest.json` | Full paper metadata (62 papers) |
 | `papers/P*.pdf` | Downloaded paper PDFs |
-| `scripts/compute_risk_convergence.py` | Risk convergence computation (to create) |
 | `scripts/analyze_supply_chain.py` | Supply chain risk analysis CLI ✅ |
 | `public_company_graph/supply_chain/` | Supply chain risk scoring module ✅ |
 | `public_company_graph/company/explain.py` | Explainable similarity functions ✅ |
 | `scripts/explain_similarity.py` | CLI tool for similarity explanation ✅ |
+| `public_company_graph/entity_resolution/character.py` | N-gram character matching (Wide) ✅ |
+| `public_company_graph/entity_resolution/semantic.py` | Embedding-based matching (Deep) ✅ |
+| `public_company_graph/entity_resolution/combined_scorer.py` | Wide & Deep combined scoring ✅ |
+| `scripts/create_er_ground_truth.py` | Ground truth dataset creation ✅ |
+| `scripts/evaluate_er.py` | ER evaluation with P/R/F1 metrics ✅ |
 
 ---
 
@@ -442,5 +457,5 @@ ORDER BY h1.value + h2.value DESC
 
 See `papers/papers_manifest.json` for full citations. Key papers:
 - P19, P25, P26, P28, P29, P32 (Economic links)
-- P39, P40 (Entity resolution)
+- P39, P40, P58, P62 (Entity resolution)
 - P42, P43, P48 (Explainability)

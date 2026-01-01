@@ -1,0 +1,196 @@
+id,source_ticker,source_name,target_ticker,target_name,relationship_type,raw_mention,context,confidence,confidence_tier,label,notes
+1,HUT,Hut 8 Corp.,TGT,TARGET CORP,HAS_PARTNER,Target,"Our framework for securing new capacity
+
+
+​
+
+
+| ​",1.000,medium,,
+2,MSGE,Madison Square Garden Entertainment Corp.,MSGS,Madison Square Garden Sports Corp.,HAS_PARTNER,Madison Square Garden Sports,Our value proposition is further strengthened by our sponsorship sales representation agreement with Madison Square Garden Sports Corp.,1.000,low,,
+3,ADBE,ADOBE INC.,NOW,"ServiceNow, Inc.",HAS_PARTNER,ServiceNow,"We will continue to engage in strategic partnerships to help drive the enterprise business, including our partnerships with Microsoft, Workday, ServiceNow and Notarize.",1.000,medium,,
+4,TPG,TPG Inc.,TRTX,"TPG RE Finance Trust, Inc.",HAS_PARTNER,TPG RE Finance Trust,"We invest in real estate through four primary products: (1) TPG Real Estate Partners, (2) TPG Real Estate Thematic Advantage Core-Plus, (3) TPG RE Finance Trust, Inc.",1.000,low,,
+5,UHAL,U-Haul Holding Co /NV/,EXR,Extra Space Storage Inc.,HAS_COMPETITOR,Extra Space Storage,"Our largest competitors in the self-storage market are Public Storage Inc., Extra Space Storage, Inc., CubeSmart and Life Storage, Inc.",1.000,medium,,
+6,KVYO,"Klaviyo, Inc.",CRM,"Salesforce, Inc.",HAS_SUPPLIER,Salesforce,"Our main competitors are:
+•Marketing solution providers, such as Mailchimp and Braze;
+•Large, consolidated marketing automation software providers, such as Adobe and Salesforce; and
+•Data-focused vend",1.000,medium,,
+7,FORM,FORMFACTOR INC,BRKR,BRUKER CORP,HAS_COMPETITOR,Bruker Corporation,"Our primary competitors in the metrology system market are Bruker Corporation, Camtek Ltd., Cohu, Inc., Filmetrics (a KLA company), Onto Innovation, and Unity SC.",0.950,medium,,
+8,CMS-PB,CONSUMERS ENERGY CO,LODE,Comstock Inc.,HAS_CUSTOMER,Comstock,"26
+Table of Contents
+
+Independent Power Production:
+
+ Presented in the following table is information about the independent power plants in which CMS Energy had an ownership interest at December 31, 2",1.000,low,,
+9,LGL,LGL GROUP INC,KN,Knowles Corp,HAS_COMPETITOR,Knowles Corporation,"Competitors include, but are not limited to, Vectron International (division of Knowles Corporation ), K&L Microwave (division of Dover Corporation), CTS Corporation, and Rakon Limited.",0.950,low,,
+10,COHU,COHU INC,CLS,CELESTICA INC,HAS_SUPPLIER,Celestica Inc,"Müller also serves as a director for Celestica Inc., a solutions-based company providing design, manufacturing and hardware platform and supply chain solutions.",1.000,low,,
+11,VOR,Vor Biopharma Inc.,BEAM,Beam Therapeutics Inc.,HAS_COMPETITOR,Beam Therapeutics,"However, we face potential competition from multiple private and public HSC companies such as Beam Therapeutics, Inc., Cimeio Therapeutics, ExCellThera and Garuda Therapeutics.",1.000,medium,,
+12,POLA,"Polar Power, Inc.",CAT,CATERPILLAR INC,HAS_COMPETITOR,Caterpillar,"Our competitors include Caterpillar, Generac, Cummins, 3-Tech, Ascot, Ausonia, Controllis and Kohler.",1.000,medium,,
+13,BBSI,BARRETT BUSINESS SERVICES INC,NSP,"INSPERITY, INC.",HAS_SUPPLIER,Insperity,"BBSI is not aware of reliable statistics regarding the number of its competitors, but certain large, well-known companies typically compete with us in the same markets and have greater financial and m",1.000,medium,,
+14,WU,Western Union CO,AXP,AMERICAN EXPRESS CO,HAS_SUPPLIER,American Express,"Fitzgerald’s time at American Express, she also held the roles in various disciplines and functions, including marketing, finance, and procurement.",1.000,medium,,
+15,LPSN,LIVEPERSON INC,TWLO,TWILIO INC,HAS_CUSTOMER,Twilio,"We have current and potential competitors in many different industries, including:
+•technology or service providers offering or powering competing digital engagement, contact center, communications, o",1.000,medium,,
+16,TPR,"TAPESTRY, INC.",CPRI,Capri Holdings Ltd,HAS_PARTNER,Capri,"In August 2023, the Company suspended its share repurchase activity in connection with the Merger Agreement with Capri.",1.000,low,,
+17,LYFT,"Lyft, Inc.",CAR,"AVIS BUDGET GROUP, INC.",HAS_COMPETITOR,Avis Budget Group,"Our main competitors in the consumer vehicle rental market include Enterprise, Hertz and Avis Budget Group as well as emerging car-share marketplaces.",1.000,low,,
+18,EFTR,"eFFECTOR Therapeutics, Inc.",ARVN,"ARVINAS, INC.",HAS_COMPETITOR,Arvinas,"Moreover, there are currently several marketed drugs and product candidates in development for the treatment of ER+ breast cancer that may compete with zotatifin, including fulvestrant marketed by Ast",1.000,medium,,
+19,NBIX,NEUROCRINE BIOSCIENCES INC,XENE,Xenon Pharmaceuticals Inc.,HAS_PARTNER,Xenon Pharmaceuticals,"In addition, we collaborate with Xenon Pharmaceuticals, Inc.",1.000,high,,
+20,NPKI,NPK International Inc.,HAL,HALLIBURTON CO,HAS_COMPETITOR,Halliburton,"4
+
+
+Competition
+
+ — We face competition from larger companies, including Halliburton, Schlumberger, and Baker Hughes, which compete vigorously on fluids performance and/or price.",1.000,medium,,
+21,ALSN,Allison Transmission Holdings Inc,TWIN,TWIN DISC INC,HAS_COMPETITOR,Twin Disc,Our major competitor in this end market is Twin Disc.,1.000,low,,
+22,CDW,CDW Corp,PANW,Palo Alto Networks Inc,HAS_SUPPLIER,Palo Alto Networks,"Partners
+
+We provide more than 100,000 products and services from more than 1,000 vendor partners, including well-established companies such as Adobe, APC, Apple, Cisco, Dell EMC, Google, Hewlett Pack",1.000,medium,,
+23,ADT,ADT Inc.,JCI,Johnson Controls International plc,HAS_COMPETITOR,Johnson Controls International,"Our principal competitors within the
+
+8
+
+commercial market are Johnson Controls International plc.",1.000,medium,,
+24,GXXM,"GEX MANAGEMENT, INC.",WMT,Walmart Inc.,HAS_CUSTOMER,Walmart,"5
+
+The
+end clients for whom GEX consultants provide services include leading companies such as Salesforce, Anthem, Walmart, United Airlines,
+Disney, Marriott, Paramount, Morgan Stanley, and Carlyle Gr",1.000,medium,,
+25,CRDO,Credo Technology Group Holding Ltd,AVGO,Broadcom Inc.,HAS_SUPPLIER,Broadcom,"Our principal competitors with respect to our products include Broadcom and Marvell, as well
+17
+as various DAC suppliers.",1.000,medium,,
+26,NXTC,"NextCure, Inc.",AMGN,AMGEN INC,HAS_COMPETITOR,Amgen,"Our competitors include larger and better funded biopharmaceutical, biotechnology and therapeutics companies, including companies focused on cancer immunotherapies, such as Amgen, Inc., AstraZeneca pl",1.000,medium,,
+27,VS,Versus Systems Inc.,MSFT,MICROSOFT CORP,HAS_COMPETITOR,Microsoft,"We also face increased competition
+from large media and technology companies with significant online presences, such as Apple, Alphabet/Google, Amazon, Meta, Microsoft,
+Netflix Shopify, or Yahoo, as t",1.000,medium,,
+28,BSY,BENTLEY SYSTEMS INC,TRMB,TRIMBLE INC.,HAS_COMPETITOR,Trimble Inc,"While we do not believe that any competitor offers a portfolio as comprehensive as ours, we do face strong competition, varying by infrastructure lifecycle phase and sector:
+•our key competitors in pu",0.950,medium,,
+29,WGRX,"Wellgistics Health, Inc.",BRK-B,BERKSHIRE HATHAWAY INC,HAS_PARTNER,Berkshire Hathaway,"The competitive healthcare landscape along with macroeconomic pressures has also
+seen increased chapter 11 filings for bankruptcy and or other means of dissolution including Medley, NowRx, AmazonCare,",1.000,medium,,
+30,EPAC,ENERPAC TOOL GROUP CORP,HON,HONEYWELL INTERNATIONAL INC,HAS_SUPPLIER,Honeywell International,"Colucci served as Senior Vice President and Chief Financial Officer of Hayward Industries, Inc., a manufacturer of pool equipment and controls products, from May 2018 to May 2020, and in various posit",1.000,medium,,
+31,UIS,UNISYS CORP,CVX,CHEVRON CORP,HAS_SUPPLIER,Chevron,"Before Mitel, he held strategic management and human resources executive positions with several
+multinational companies including Hostess Foods, Celanese, Quaker State, PepsiCo, Continental Airlines,",1.000,medium,,
+32,CRDO,Credo Technology Group Holding Ltd,AVGO,Broadcom Inc.,HAS_COMPETITOR,Broadcom,"Our principal competitors with respect to our products include Broadcom and Marvell, as well
+17
+as various DAC suppliers.",1.000,medium,,
+33,FROG,JFrog Ltd,GOOGL,Alphabet Inc.,HAS_PARTNER,Alphabet Inc,"While also partners, cloud providers, such as Amazon Web Services (AWS), Microsoft Azure (including Azure DevOps) and Alphabet Inc.’s Google Cloud, may compete with a subset of JFrog functionality.",0.950,medium,,
+34,RCAT,"Red Cat Holdings, Inc.",AVAV,AeroVironment Inc,HAS_COMPETITOR,AeroVironment,"Competitors in the Enterprise segment include transportation companies like United Parcel Service, Federal
+Express and Amazon, as well as defense companies such as Lockheed Martin Corporation, Northro",1.000,low,,
+35,O,REALTY INCOME CORP,DLTR,"DOLLAR TREE, INC.",HAS_CUSTOMER,Dollar Tree,"Client Diversification
+
+The following table sets forth our 20 largest clients in our property portfolio, expressed as a percentage of total portfolio annualized contractual rent, which does not give e",1.000,medium,,
+36,DIT,AMCON DISTRIBUTING CO,SFM,"Sprouts Farmers Market, Inc.",HAS_COMPETITOR,Sprouts Farmers Market,"In
+our retail health food business, we compete with a wide range of well financed regional and national competitors such as Whole Foods Markets, Trader Joe's, Sprouts Farmers Market, Natural Grocers,",1.000,low,,
+37,TRS,TRIMAS CORP,CAT,CATERPILLAR INC,HAS_COMPETITOR,Caterpillar,"Arrow Engine tends to compete against natural gas powered, lower horsepower, multi-cylinder engines from manufacturers such as Caterpillar, Chevy, Cummins and Ford industrial engines and electric moto",1.000,medium,,
+38,FLYW,Flywire Corp,AXP,AMERICAN EXPRESS CO,HAS_PARTNER,American Express,"We are responsible for data security for ourselves and for third parties with whom we partner and under the rules and regulations established by the payment networks, such as Visa, Mastercard and Amer",1.000,medium,,
+39,INLX,"INTELLINETICS, INC.",AIRI,AIR INDUSTRIES GROUP,HAS_SUPPLIER,Air Industries Group,"He currently serves on the board of directors of publicly traded Air Industries Group, a manufacturer of aerospace
+parts and assemblies, and Decisionpoint Systems, Inc., a leading provider and integra",1.000,low,,
+40,LTRN,Lantern Pharma Inc.,SDGR,"Schrodinger, Inc.",HAS_COMPETITOR,Schrodinger,"Our competition in AI-driven
+drug development for oncology includes, but is not limited to, the following:
+
+| ● | Development of drug candidates: AbCellera, Atomwise, Benevolent AI, Berg Health, Exsci",1.000,low,,
+41,ETI-P,"ENTERGY TEXAS, INC.",ELC,"ENTERGY LOUISIANA, LLC",HAS_PARTNER,Entergy Louisiana,"Entergy Louisiana, as successor in interest to Entergy Gulf States Louisiana, now holds the agreement with the facility;
+•In March 2013, Entergy Gulf States Louisiana and Agrilectric Power Partners, L",1.000,high,,
+42,FRZT,"Freeze Tag, Inc.",EA,ELECTRONIC ARTS INC.,HAS_PARTNER,Electronic Arts,"Some of the largest casual game publishers are:
+
+Rovio
+
+
+(creators of Angry Birds) Esbo, Finland
+
+
+PopCap Games
+
+ – acquired by Electronic Arts (creators of Bejeweled) Seattle, Washington
+
+Big Fish G",1.000,low,,
+43,ATMU,Atmus Filtration Technologies Inc.,PCAR,PACCAR INC,HAS_SUPPLIER,Paccar,"Partnering with leading OEMs
+
+Atmus has a strong history as a supplier to leading OEMs, including Cummins, Daimler, Deere, Doosan, Foton, Komatsu, Paccar/DAF, the Traton Group (Navistar/Scania/MAN), S",1.000,medium,,
+44,UCTT,"Ultra Clean Holdings, Inc.",CLS,CELESTICA INC,HAS_COMPETITOR,Celestica Inc,"Our principal competitor for gas delivery systems is Ichor Systems, Inc., and our principal competitors for other critical subsystems are Flex Ltd., Foxsemicon Integrated Technology Inc., Jabil, Inc.,",1.000,medium,,
+45,USIO,"Usio, Inc.",V,VISA INC.,HAS_PARTNER,Visa,"The cancellation of either contract, termination of their registration or any changes in the Visa, Mastercard or Discover rules that would impair the registration of our third-party processing provide",1.000,medium,,
+46,EME,"EMCOR Group, Inc.",TT,Trane Technologies plc,HAS_SUPPLIER,Trane Technologies,"While the building services industry is also highly fragmented, with most competitors operating in a specific geographic region, a number of large corporations such as Amentum Services, Inc., IAP Worl",1.000,low,,
+47,BTBT,"Bit Digital, Inc",DELL,Dell Technologies Inc.,HAS_PARTNER,Dell,"We are an authorized Network Control Processor (“NCP”) with NVIDIA, an authorized partner with SuperMicro
+Computer Inc.®, an authorized Communications Service Provider (“CSP”) with Dell, and an offici",1.000,medium,,
+48,CWEN,"Clearway Energy, Inc.",SPWR,SunPower Inc.,HAS_SUPPLIER,SunPower Corporation,"The Company's assets are comprised of proven and reliable technologies, provided by leading original solar and wind equipment manufacturers such as General Electric, Siemens AG, SunPower Corporation,",0.950,low,,
+49,VYX,NCR Voyix Corp,FIS,"Fidelity National Information Services, Inc.",HAS_COMPETITOR,Fidelity National Information Services,"In the financial industry, our Banking segment faces a variety of competitors offering financial services and software including, among others, Fidelity National Information Services Inc., Fiserv, Inc",1.000,medium,,
+50,RPAY,Repay Holdings Corp,MA,Mastercard Inc,HAS_PARTNER,MasterCard,Our member bank partners sponsor our adherence to the rules and standards of the payment networks and enable us to route transactions under the sponsor banks’ control and identification numbers (for e,1.000,medium,,
+51,IOVA,"IOVANCE BIOTHERAPEUTICS, INC.",TIL,"Instil Bio, Inc.",HAS_COMPETITOR,Instil Bio,"We also may compete with other TIL cell therapies in development by companies such as Instil Bio, Achilles Therapeutics, KSQ Therapeutics, Obsidian Therapeutics, Immatics, TILT Biotherapeutics, WindMI",1.000,low,,
+52,ARTV,"Artiva Biotherapeutics, Inc.",ALLO,"Allogene Therapeutics, Inc.",HAS_COMPETITOR,Allogene Therapeutics,"Our known biopharmaceutical competitors that are developing allogeneic CAR-NK or CAR-T cell therapies or T-cell engaging bispecific antibodies include, but may not be limited to, the following: Adicet",1.000,medium,,
+53,ATEN,"A10 Networks, Inc.",NTCT,NETSCOUT SYSTEMS INC,HAS_COMPETITOR,Netscout Systems,"Our main competitors fall into the following categories:
+•Companies that sell network security solutions and services including DDoS protection, such as Arbor Networks Inc., a subsidiary of Netscout S",1.000,low,,
+54,FARM,FARMER BROTHERS CO,USFD,US Foods Holding Corp.,HAS_SUPPLIER,US Foods Holding Corp,"Smucker Company (Folgers Coffee) and The Kraft Heinz Company (Maxwell House Coffee), wholesale foodservice distributors such as Sysco Corporation and US Foods Holding Corp., regional and national coff",0.950,low,,
+55,ANET,"Arista Networks, Inc.",DELL,Dell Technologies Inc.,HAS_SUPPLIER,Dell,"The data center and campus networking markets have been historically dominated by Cisco, with competition also coming from other large network equipment and system vendors, including Extreme Networks,",1.000,medium,,
+56,HALO,"HALOZYME THERAPEUTICS, INC.",VTRS,Viatris Inc,HAS_COMPETITOR,Viatris,"Our competitors include established specialty pharmaceutical companies, major brand name and generic manufacturers of pharmaceuticals such as Teva, Viatris, Eli Lilly and Endo, as well as a wide range",1.000,medium,,
+57,RSVR,"Reservoir Media, Inc.",AAPL,Apple Inc.,HAS_PARTNER,Apple,"Through our distribution network, our music is being sold in physical retail outlets, as well as via online retailers, such as amazon.com, and distributed in digital form to an ever-expanding universe",1.000,medium,,
+58,OSS,"ONE STOP SYSTEMS, INC.",AVGO,Broadcom Inc.,HAS_CUSTOMER,Broadcom,"We apply the component technology provided by Intel, AMD, NVIDIA, Micron, Broadcom, and others to deliver solutions to provide true value to our customers.",1.000,medium,,
+59,ATI,ATI INC,BRK-B,BERKSHIRE HATHAWAY INC,HAS_COMPETITOR,Berkshire Hathaway Inc,"Principal competitors in the HPMC segment include:  Berkshire Hathaway Inc., for nickel-based alloys and superalloys and specialty steel alloys, titanium and titanium-based alloys, and precision forgi",1.000,medium,,
+60,FOUR,"Shift4 Payments, Inc.",GPN,GLOBAL PAYMENTS INC,HAS_PARTNER,Global Payments,"We expect the competitive landscape will continue to change in a variety of ways, including:
+•rapid and significant changes in technology, resulting in new and innovative payment methods and programs,",1.000,medium,,
+61,LVLU,"Lulu's Fashion Lounge Holdings, Inc.",PINS,"PINTEREST, INC.",HAS_PARTNER,Pinterest,"We use social media including Facebook, Instagram, Pinterest, Snapchat, TikTok, Twitter and YouTube, as well as affiliate marketing, email, SMS, podcast advertisements, promotional partnerships and di",1.000,medium,,
+62,ACN,Accenture plc,MSFT,MICROSOFT CORP,HAS_COMPETITOR,Microsoft,"Our strong ecosystem relationships provide a significant competitive advantage, and we are a key partner of a broad range of technology providers, including Adobe, Alibaba, Amazon Web Services, Blue Y",1.000,medium,,
+63,BAER,"Bridger Aerospace Group Holdings, Inc.",NDAQ,"NASDAQ, INC.",HAS_PARTNER,Nasdaq,"The price of our Common Stock and Warrants may fluctuate significantly due to a number of factors, some of which may be beyond our control,
+including those factors discussed in this “Risk Factors” sec",1.000,medium,,
+64,VRM,"Vroom, Inc.",CARS,Cars.com Inc.,HAS_COMPETITOR,Cars.com,"Internet and online automotive sites could change their models to sell used vehicles and compete with us, such as Google, Amazon, AutoTrader.com, Edmunds.com, KBB.com, Autobytel.com, TrueCar.com, CarG",1.000,medium,,
+65,MAMO,Massimo Group,WMT,Walmart Inc.,HAS_CUSTOMER,Walmart,"To
+reach our target customer, we have established multiple distribution channels for our products, including our own on-line sites,
+multiple popular e-commerce sites, an extensive network of independe",1.000,medium,,
+66,EVR,Evercore Inc.,C,CITIGROUP INC,HAS_COMPETITOR,Citigroup,"Our investment banking competitors can be categorized into two main groups: (1) large universal banks and bulge bracket firms such as Bank of America, Barclays, Citigroup, Deutsche Bank, Goldman Sachs",1.000,low,,
+67,REPL,"Replimune Group, Inc.",HTGC,"Hercules Capital, Inc.",HAS_PARTNER,Hercules Capital,"On October 6, 2022 we and certain of our subsidiaries entered into a Loan and Security Agreement, or the Loan Agreement with Hercules Capital, Inc., or Hercules, in its capacity as administrative agen",1.000,medium,,
+68,SIRI,SIRIUS XM HOLDINGS INC.,AAPL,Apple Inc.,HAS_COMPETITOR,Apple,"Our streaming services also compete for listeners on the basis of the presence and visibility of our apps, which are distributed via app stores operated by Apple and Google.",1.000,medium,,
+69,INTI,"Inhibitor Therapeutics, Inc.",PFE,PFIZER INC,HAS_COMPETITOR,Pfizer,"The chart below lists products or products in development that we believe may compete directly with our proposed SUBA-Itraconazole therapy:
+
+| Names                  | Company          | Description",1.000,medium,,
+70,FRSH,Freshworks Inc.,NOW,"ServiceNow, Inc.",HAS_COMPETITOR,ServiceNow,"Within ITSM, we primarily face competition from traditional vendors, such as ServiceNow, BMC, Ivanti/Cherwell, and modern pure-play vendors, such as Atlassian.",1.000,medium,,
+71,MBLY,Mobileye Global Inc.,GOOGL,Alphabet Inc.,HAS_COMPETITOR,Alphabet,"Moovit’s free and subscription-based application competition includes Alphabet, Apple, Citymapper, and Transit.",1.000,medium,,
+72,KAYS,"Kaya Holdings, Inc.",SBUX,STARBUCKS CORP,HAS_CUSTOMER,Starbucks,"Dubbed
+by the mainstream press as the “Starbucks of Marijuana” after our first outlet opened in July 2014, our operating
+concept is simple: to deliver a consistent customer experience (quality product",1.000,medium,,
+73,HNST,"Honest Company, Inc.",WMT,Walmart Inc.,HAS_PARTNER,Walmart,"Our Integrated Omnichannel Presence
+
+Since our launch, we have built a well-integrated omnichannel presence by expanding our product availability across both Digital and Retail channels, including the",1.000,medium,,
+74,NAUT,"Nautilus Biotechnology, Inc.",AMGN,AMGEN INC,HAS_PARTNER,Amgen,"As of the date of filing this Annual Report, we have partnerships with Genentech, Amgen, The University of Texas MD Anderson Cancer Research Center, and the Translational Genomics Research Institute,",1.000,medium,,
+75,NGVT,Ingevity Corp,CBT,CABOT CORP,HAS_SUPPLIER,Cabot Corp,"Competition
+
+Our automotive technologies competitors include Cabot Corp., Kuraray Co., Ltd., and several Chinese manufacturers.",1.000,medium,,
+76,AMRX,"Amneal Pharmaceuticals, Inc.",VTRS,Viatris Inc,HAS_COMPETITOR,Viatris Inc,"Our principal competitors in the generic/biosimilar pharmaceutical products market include Teva Pharmaceutical Industries Ltd., Viatris Inc., Endo International plc, Sandoz International GmbH, Pfizer",1.000,medium,,
+77,IAC,IAC Inc.,AAPL,Apple Inc.,HAS_SUPPLIER,Apple,"We depend on search engines, digital app stores and social media platforms, in particular, those operated by Google, Apple and Facebook, to market, distribute and monetize its products and services.",1.000,medium,,
+78,PNC,"PNC FINANCIAL SERVICES GROUP, INC.",MA,Mastercard Inc,HAS_CUSTOMER,Mastercard,"In addition, we provide card transaction processing services to some merchant customers under agreements we have with payment networks such as Visa and Mastercard.",1.000,medium,,
+79,HCTI,"Healthcare Triangle, Inc.",AAPL,Apple Inc.,HAS_CUSTOMER,Apple,"In addition to healthcare-specific information
+protection requirements, we store sensitive information, including personal information about our employees, and our platforms involve
+the storage and tr",1.000,medium,,
+80,GPJA,GEORGIA POWER CO,DUK,Duke Energy CORP,HAS_CUSTOMER,Duke Energy Corporation,"Southern Power’s top three customers, Georgia Power, Florida Power & Light Company, and Duke Energy Corporation, accounted for 15.8%, 10.7%, and 8.2%, respectively, of Southern Power’s total revenues",0.950,medium,,
+81,MXL,"MAXLINEAR, INC",TXN,TEXAS INSTRUMENTS INC,HAS_COMPETITOR,Texas Instruments,"Our primary merchant semiconductor competitors include Silicon Labs, NXP Semiconductors N.V, MediaTek, Inc., Broadcom Ltd, Rafael Microelectronics, Inc., Inphi Corporation, M/A-COM Technology Solution",1.000,medium,,
+82,DOW,DOW INC.,CE,Celanese Corp,HAS_SUPPLIER,Celanese,"Details on Performance Materials & Coatings' 2022 net sales, by business and geographic region, are as follows:
+
+12
+Table of Contents
+
+Products
+
+Major applications/market segments and products are",1.000,low,,
+83,GNW,GENWORTH FINANCIAL INC,ACT,"Enact Holdings, Inc.",HAS_SUPPLIER,Enact Holdings,"For more information on the potential impacts due to customer concentration, see “Item 1A—Risk Factors—Enact Holdings’ reliance on key customers or distribution relationships could cause a loss of sig",1.000,low,,
+84,CRCT,"Cricut, Inc.",W,Wayfair Inc.,HAS_COMPETITOR,Wayfair,"Supreme Court’s Wayfair decision has removed a significant impediment to the enactment and enforcement of these laws, and it is possible that states may seek to tax out-of-state sellers on sales that",1.000,medium,,
+85,KVYO,"Klaviyo, Inc.",BRZE,"Braze, Inc.",HAS_COMPETITOR,Braze,"Our main competitors are:
+•Marketing solution providers, such as Mailchimp and Braze;
+•Large, consolidated marketing automation software providers, such as Adobe and Salesforce; and
+•Data-focused vend",1.000,low,,
+86,ACN,Accenture plc,MSFT,MICROSOFT CORP,HAS_PARTNER,Microsoft,"Our strong ecosystem relationships provide a significant competitive advantage, and we are a key partner of a broad range of technology providers, including Adobe, Alibaba, Amazon Web Services, Blue Y",1.000,medium,,
+87,ANTX,"AN2 Therapeutics, Inc.",PFE,PFIZER INC,HAS_SUPPLIER,Pfizer,"For example, we depend on a license agreement from Anacor, a biopharmaceutical company that originally developed epetraborole and is currently a wholly-owned subsidiary of Pfizer.",1.000,medium,,
+88,NKGN,"NKGen Biotech, Inc.",IPSC,"Century Therapeutics, Inc.",HAS_COMPETITOR,Century Therapeutics,"We currently face competition from Acepodia, Artiva, Celularity, Century Therapeutics, Cytovia Therapeutics, Fate Therapeutics, Nkarta, and ImmunityBio each of which have clinical-stage allogeneic pro",1.000,medium,,
+89,RYAM,RAYONIER ADVANCED MATERIALS INC.,CLW,Clearwater Paper Corp,HAS_COMPETITOR,Clearwater Paper,"Significant paperboard competitors include WestRock, Graphic Packaging, Metsa Group, Clearwater Paper and Sappi.",1.000,low,,
+90,UAN,"CVR PARTNERS, LP",CF,"CF Industries Holdings, Inc.",HAS_COMPETITOR,CF Industries Holdings,"Subject to location and other considerations, our major domestic competitors in the nitrogen fertilizer business generally includes CF Industries Holdings, Inc., which sells significantly more nitroge",1.000,medium,,
+91,INUV,"Inuvo, Inc.",ORCL,ORACLE CORP,HAS_SUPPLIER,Oracle,"Some of the basic components our products are built on come from leading software and hardware providers such as Oracle, Microsoft, Sun, Dell, EMC, and Cisco, while some components are constructed fro",1.000,medium,,
+92,SCLX,Scilex Holding Co,MA,Mastercard Inc,HAS_COMPETITOR,MA,"Under the “decentralized” procedure, an identical dossier is submitted to the competent authorities of each of the EEA countries in which the MA is sought, one of which is selected by the applicant as",1.000,medium,,
+93,ALLO,"Allogene Therapeutics, Inc.",AUTL,Autolus Therapeutics plc,HAS_COMPETITOR,Autolus Therapeutics,"For example, we may experience competition in these markets from companies such as Adicet Bio, Inc., Atara Biotherapeutics, Inc., Autolus Therapeutics plc, BMS, Cabaletta Bio, Inc., Cartesian Therapeu",1.000,high,,
+94,TIVC,"Tivic Health Systems, Inc.",MCK,MCKESSON CORP,HAS_SUPPLIER,McKesson,"The Company has also entered distribution agreements with McKesson, Cardinal Health and Amerisource Bergen.",1.000,medium,,
+95,CTMX,"CytomX Therapeutics, Inc.",HOWL,"Werewolf Therapeutics, Inc.",HAS_COMPETITOR,Werewolf Therapeutics,"These competitors generally fall within the following categories:
+
+Masking and conditional activation:
+
+Several companies, including AbbVie, Adagene, Amgen, BioAtla, Halozyme Therapeutics, Harpoon Th",1.000,low,,
+96,GFF,GRIFFON CORP,HD,"HOME DEPOT, INC.",HAS_PARTNER,Home Depot,"Additionally, products are sold to over 2,500 independent professional installing dealers and to major home center retail chains including Home Depot and Menards (with the average length of the relati",1.000,medium,,
+97,SLP,"Simulations Plus, Inc.",AAPL,Apple Inc.,HAS_COMPETITOR,Apple,A recent development in the competitive environment is the appearance of communication devices based on the Apple iPod and iPad.,1.000,medium,,
+98,LFWD,Lifeward Ltd.,NDAQ,"NASDAQ, INC.",HAS_COMPETITOR,NASDAQ,"Our principal competitors in the medical exoskeleton market consist
+of Ekso Bionics (NASDAQ: EKSO), Rex Bionics Pty, Cyberdyne (Tokyo Stock Exchange: 7779), FREE Bionics, DIH (formerly known as Hocoma",1.000,medium,,
+99,IMA,"ImageneBio, Inc.",BMY,BRISTOL MYERS SQUIBB CO,HAS_PARTNER,Bristol Myers Squibb,"Considering these delays and the timeline of the partnership, we made the strategic decision to pause IK-412 development activities for the remainder of the Bristol Myers Squibb collaboration agreemen",1.000,medium,,
+100,MQ,"Marqeta, Inc.",GPN,GLOBAL PAYMENTS INC,HAS_COMPETITOR,Global Payments,"Our competitors fall into three primary categories:
+•Providers with legacy technology platforms, including Fidelity National Information Services (FIS), Fiserv, and Global Payments (TSYS):
+We believe",1.000,high,,
