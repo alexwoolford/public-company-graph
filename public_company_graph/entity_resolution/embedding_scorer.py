@@ -6,7 +6,7 @@ semantically matches the candidate company.
 
 Architecture:
 - Company embeddings are PRE-COMPUTED and stored in Neo4j (description_embedding)
-- Context embeddings are computed on-demand but CACHED to disk
+- Context embeddings are computed on-demand but CACHED using AppCache (diskcache)
 - Similarity is pure math (instant)
 
 Based on P58 (Zeakis 2023): Pre-trained embeddings can effectively
@@ -16,18 +16,21 @@ disambiguate entities without fine-tuning.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
+
+from public_company_graph.cache import get_cache
 
 if TYPE_CHECKING:
     from openai import OpenAI
 
 logger = logging.getLogger(__name__)
+
+# Cache namespace for context embeddings
+CONTEXT_CACHE_NAMESPACE = "context_embeddings"
 
 
 @dataclass
@@ -58,11 +61,7 @@ class EmbeddingSimilarityScorer:
 
     # Class-level caches (shared across all instances)
     _company_cache: dict[str, tuple[list[float], str]] = {}  # ticker -> (embedding, description)
-    _context_cache: dict[str, list[float]] = {}  # hash -> embedding
     _cache_loaded = False
-
-    # Disk cache for context embeddings
-    CACHE_DIR = Path(__file__).parent.parent.parent / "data" / "embedding_cache"
 
     def __init__(
         self,
@@ -105,8 +104,8 @@ class EmbeddingSimilarityScorer:
         if not EmbeddingSimilarityScorer._cache_loaded and self._driver:
             self._load_company_embeddings()
 
-        # Load context embedding cache from disk
-        self._load_context_cache()
+        # Get AppCache for context embeddings
+        self._disk_cache = get_cache()
 
     def _load_company_embeddings(self):
         """Load all company embeddings from Neo4j into memory (once)."""
@@ -138,43 +137,20 @@ class EmbeddingSimilarityScorer:
         EmbeddingSimilarityScorer._cache_loaded = True
         logger.info(f"Loaded {len(EmbeddingSimilarityScorer._company_cache)} company embeddings")
 
-    def _load_context_cache(self):
-        """Load context embeddings from disk cache."""
-        cache_file = self.CACHE_DIR / "context_embeddings.json"
-        if cache_file.exists() and not EmbeddingSimilarityScorer._context_cache:
-            try:
-                with open(cache_file) as f:
-                    EmbeddingSimilarityScorer._context_cache = json.load(f)
-                logger.debug(
-                    f"Loaded {len(EmbeddingSimilarityScorer._context_cache)} cached context embeddings"
-                )
-            except Exception as e:
-                logger.warning(f"Failed to load context cache: {e}")
-
-    def _save_context_cache(self):
-        """Save context embeddings to disk cache."""
-        self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        cache_file = self.CACHE_DIR / "context_embeddings.json"
-
-        try:
-            with open(cache_file, "w") as f:
-                json.dump(EmbeddingSimilarityScorer._context_cache, f)
-        except Exception as e:
-            logger.warning(f"Failed to save context cache: {e}")
-
     @staticmethod
     def _hash_text(text: str) -> str:
         """Create a hash key for text."""
         return hashlib.sha256(text.encode()).hexdigest()[:16]
 
     def _get_context_embedding(self, text: str) -> list[float]:
-        """Get embedding for context text (cached)."""
+        """Get embedding for context text (cached using AppCache)."""
         text_truncated = text[:500]  # Limit context length
         cache_key = self._hash_text(text_truncated)
 
-        # Check cache first
-        if cache_key in EmbeddingSimilarityScorer._context_cache:
-            return EmbeddingSimilarityScorer._context_cache[cache_key]
+        # Check cache first (AppCache handles disk persistence)
+        cached = self._disk_cache.get(CONTEXT_CACHE_NAMESPACE, cache_key)
+        if cached is not None:
+            return cached
 
         # Compute embedding
         response = self._client.embeddings.create(
@@ -183,12 +159,8 @@ class EmbeddingSimilarityScorer:
         )
         embedding = response.data[0].embedding
 
-        # Cache it
-        EmbeddingSimilarityScorer._context_cache[cache_key] = embedding
-
-        # Periodically save to disk (every 100 new embeddings)
-        if len(EmbeddingSimilarityScorer._context_cache) % 100 == 0:
-            self._save_context_cache()
+        # Cache it (AppCache auto-persists to disk)
+        self._disk_cache.set(CONTEXT_CACHE_NAMESPACE, cache_key, embedding)
 
         return embedding
 
@@ -282,7 +254,7 @@ class EmbeddingSimilarityScorer:
         for ctx in contexts:
             text = ctx[:500]
             key = self._hash_text(text)
-            if key not in EmbeddingSimilarityScorer._context_cache:
+            if self._disk_cache.get(CONTEXT_CACHE_NAMESPACE, key) is None:
                 uncached.append(text)
                 uncached_keys.append(key)
 
@@ -304,11 +276,16 @@ class EmbeddingSimilarityScorer:
             )
 
             for j, emb_data in enumerate(response.data):
-                EmbeddingSimilarityScorer._context_cache[batch_keys[j]] = emb_data.embedding
+                self._disk_cache.set(CONTEXT_CACHE_NAMESPACE, batch_keys[j], emb_data.embedding)
 
-        # Save to disk
-        self._save_context_cache()
         logger.info(f"Cached {len(uncached)} new context embeddings")
+
+    def cache_stats(self) -> dict:
+        """Get cache statistics for context embeddings."""
+        return {
+            "namespace": CONTEXT_CACHE_NAMESPACE,
+            "count": self._disk_cache.count(CONTEXT_CACHE_NAMESPACE),
+        }
 
 
 def score_embedding_similarity(

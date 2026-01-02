@@ -4,6 +4,8 @@ LLM-based relationship verification.
 Uses GPT to verify that a claimed relationship is actually present in the context.
 More expensive but much more accurate than pattern matching for ambiguous cases.
 
+All verifications are cached using the project's unified AppCache (diskcache).
+
 Usage:
     verifier = LLMRelationshipVerifier()
     result = verifier.verify(
@@ -16,18 +18,23 @@ Usage:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from public_company_graph.cache import get_cache
 from public_company_graph.embeddings import get_openai_client
 
 if TYPE_CHECKING:
     from openai import OpenAI
 
 logger = logging.getLogger(__name__)
+
+# Cache namespace for LLM verification results
+CACHE_NAMESPACE = "llm_verification"
 
 
 class VerificationResult(Enum):
@@ -92,6 +99,7 @@ class LLMRelationshipVerifier:
     Verifies relationships using GPT.
 
     Use for SUPPLIER/CUSTOMER where pattern-based extraction has low precision.
+    All verifications are cached using the project's unified AppCache (diskcache).
     """
 
     def __init__(
@@ -102,6 +110,19 @@ class LLMRelationshipVerifier:
         """Initialize the verifier."""
         self._client = client or get_openai_client()
         self.model = model
+        self._cache = get_cache()
+
+    def _get_cache_key(
+        self,
+        context: str,
+        source_company: str,
+        target_company: str,
+        claimed_relationship: str,
+    ) -> str:
+        """Generate cache key from verification inputs."""
+        # Use first 500 chars of context for key (enough to be unique)
+        key_str = f"{context[:500]}|{source_company}|{target_company}|{claimed_relationship}"
+        return hashlib.sha256(key_str.encode()).hexdigest()[:16]
 
     def verify(
         self,
@@ -113,6 +134,8 @@ class LLMRelationshipVerifier:
         """
         Verify a single relationship using LLM.
 
+        Results are cached to avoid repeated API calls.
+
         Args:
             context: The text containing the relationship
             source_company: The company making the 10-K filing
@@ -122,6 +145,21 @@ class LLMRelationshipVerifier:
         Returns:
             LLMVerificationResult with verification outcome
         """
+        # Check cache first
+        cache_key = self._get_cache_key(
+            context, source_company, target_company, claimed_relationship
+        )
+        cached = self._cache.get(CACHE_NAMESPACE, cache_key)
+        if cached is not None:
+            return LLMVerificationResult(
+                result=VerificationResult(cached["result"]),
+                confidence=cached["confidence"],
+                explanation=cached["explanation"],
+                suggested_relationship=cached.get("suggested_relationship"),
+                cost_tokens=0,  # No cost for cached results
+            )
+
+        # Not cached - call LLM
         rel_desc = RELATIONSHIP_DESCRIPTIONS.get(
             claimed_relationship,
             "has a business relationship with",
@@ -177,13 +215,27 @@ class LLMRelationshipVerifier:
             else:
                 result = VerificationResult.UNCERTAIN
 
-            return LLMVerificationResult(
+            llm_result = LLMVerificationResult(
                 result=result,
                 confidence=confidence,
                 explanation=explanation,
                 suggested_relationship=actual_rel if actual_rel != claimed_relationship else None,
                 cost_tokens=total_tokens,
             )
+
+            # Cache the result (no TTL - verifications are deterministic)
+            self._cache.set(
+                CACHE_NAMESPACE,
+                cache_key,
+                {
+                    "result": result.value,
+                    "confidence": confidence,
+                    "explanation": explanation,
+                    "suggested_relationship": llm_result.suggested_relationship,
+                },
+            )
+
+            return llm_result
 
         except Exception as e:
             logger.error(f"LLM verification failed: {e}")
@@ -194,6 +246,13 @@ class LLMRelationshipVerifier:
                 suggested_relationship=None,
                 cost_tokens=0,
             )
+
+    def cache_stats(self) -> dict:
+        """Get cache statistics for LLM verifications."""
+        return {
+            "namespace": CACHE_NAMESPACE,
+            "count": self._cache.count(CACHE_NAMESPACE),
+        }
 
     def verify_batch(
         self,
