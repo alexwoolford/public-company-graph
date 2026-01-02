@@ -81,15 +81,25 @@ class EmbeddingSimilarityScorer:
             database: Neo4j database name
         """
         self.threshold = threshold
-        self._driver = neo4j_driver
         self._database = database
 
         if client is None:
-            from openai import OpenAI
+            from public_company_graph.embeddings import get_openai_client
 
-            self._client = OpenAI()
+            self._client = get_openai_client()
         else:
             self._client = client
+
+        # Get Neo4j driver (create if not provided)
+        if neo4j_driver is None and not EmbeddingSimilarityScorer._cache_loaded:
+            from public_company_graph.config import Settings
+            from public_company_graph.neo4j.connection import get_neo4j_driver
+
+            settings = Settings()
+            self._driver = get_neo4j_driver()
+            self._database = self._database or settings.neo4j_database
+        else:
+            self._driver = neo4j_driver
 
         # Load company embeddings from Neo4j (once, into class-level cache)
         if not EmbeddingSimilarityScorer._cache_loaded and self._driver:
