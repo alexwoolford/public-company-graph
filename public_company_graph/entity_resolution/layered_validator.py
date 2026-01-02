@@ -33,6 +33,8 @@ class RejectionReason(Enum):
     BIOGRAPHICAL_CONTEXT = "biographical_context"
     RELATIONSHIP_MISMATCH = "relationship_mismatch"
     EXCHANGE_REFERENCE = "exchange_reference"
+    CORPORATE_STRUCTURE = "corporate_structure"
+    PLATFORM_DEPENDENCY = "platform_dependency"
 
 
 @dataclass
@@ -93,7 +95,9 @@ class LayeredEntityValidator:
 
         from public_company_graph.entity_resolution.filters import (
             BiographicalContextFilter,
+            CorporateStructureFilter,
             ExchangeReferenceFilter,
+            PlatformDependencyFilter,
         )
         from public_company_graph.entity_resolution.relationship_verifier import (
             RelationshipVerifier,
@@ -101,6 +105,8 @@ class LayeredEntityValidator:
 
         self._bio_filter = BiographicalContextFilter()
         self._exchange_filter = ExchangeReferenceFilter()
+        self._corporate_filter = CorporateStructureFilter()
+        self._platform_filter = PlatformDependencyFilter()
         self._relationship_verifier = RelationshipVerifier()
 
     def validate(
@@ -192,6 +198,30 @@ class LayeredEntityValidator:
                 embedding_passed=embedding_passed,
                 biographical_passed=True,
                 details={"matched_pattern": exchange_result.reason},
+            )
+
+        # Layer 2c: Corporate structure filter (parent/subsidiary/spin-off)
+        corporate_result = self._corporate_filter.filter(candidate)
+        if not corporate_result.passed:
+            return ValidationResult(
+                accepted=False,
+                rejection_reason=RejectionReason.CORPORATE_STRUCTURE,
+                embedding_similarity=embedding_similarity,
+                embedding_passed=embedding_passed,
+                biographical_passed=True,
+                details={"matched_pattern": corporate_result.reason},
+            )
+
+        # Layer 2d: Platform dependency filter (app stores, OS)
+        platform_result = self._platform_filter.filter(candidate)
+        if not platform_result.passed:
+            return ValidationResult(
+                accepted=False,
+                rejection_reason=RejectionReason.PLATFORM_DEPENDENCY,
+                embedding_similarity=embedding_similarity,
+                embedding_passed=embedding_passed,
+                biographical_passed=True,
+                details={"matched_pattern": platform_result.reason},
             )
 
         # Layer 3: Relationship type verifier

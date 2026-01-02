@@ -451,6 +451,9 @@ NAME_BLOCKLIST = {
     "glp",  # Good Laboratory Practice
     "iot",  # Internet of Things
     "qsr",  # Quick Service Restaurant
+    # Generic words that collide with company names (from train set error analysis)
+    "strategy",  # "Business Strategy" section headers - collides with MSTR (MicroStrategy)
+    "reliability",  # Quality attribute - collides with RLBY (Reliability Inc)
 }
 
 # High-value company names that SHOULD be extracted even if they look like common words

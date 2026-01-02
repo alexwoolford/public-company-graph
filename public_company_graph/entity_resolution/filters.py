@@ -27,6 +27,8 @@ class FilterReason(Enum):
     NEGATION_CONTEXT = "negation_context"
     BIOGRAPHICAL_CONTEXT = "biographical_context"  # Director/employee mentions
     EXCHANGE_REFERENCE = "exchange_reference"  # Stock exchange listings
+    CORPORATE_STRUCTURE = "corporate_structure"  # Parent/subsidiary/spin-off
+    PLATFORM_DEPENDENCY = "platform_dependency"  # App store/OS distribution
 
 
 @dataclass(frozen=True)
@@ -325,6 +327,9 @@ class BiographicalContextFilter(CandidateFilter):
         r"\bbackground\s+(?:of|includes?)\b",
         r"\bresume\b",
         r"\bcurriculum\s+vitae\b",
+        # Employment tenure patterns (from validation error analysis)
+        r"\bspent\s+\d+\s+years?\s+(?:at|with)\b",  # "spent 18 years at Accenture"
+        r"\b\d+\s+years?\s+(?:at|with|of\s+experience)\b",  # "18 years at"
     ]
 
     def __init__(self, patterns: list[str] | None = None, window_size: int = 200):
@@ -409,6 +414,11 @@ class ExchangeReferenceFilter(CandidateFilter):
         r"\bsecurities\s+(?:trade|traded|trading)\s+on\b",
         r"\b(?:Nasdaq|NASDAQ|NYSE)\s+Global\s+(?:Select\s+)?Market\b",  # "Nasdaq Global Select Market"
         r"\bcommon\s+stock\s+is\s+(?:listed|traded)\b",  # "common stock is listed"
+        # Exchange regulatory/compliance context (not supplier relationships)
+        r"\b(?:sanctions?|investigations?)\s+by\s+(?:Nasdaq|NASDAQ|NYSE)\b",
+        r"\b(?:delisted|delisting)\s+from\s+(?:Nasdaq|NASDAQ|NYSE)\b",
+        r"\b(?:comply|compliance)\s+with.{0,50}(?:Nasdaq|NASDAQ|NYSE)\b",
+        r"\b(?:Nasdaq|NASDAQ|NYSE)\s+listing\s+(?:rules?|requirements?|standards?)\b",
         # Legal case references - expanded
         r"\bv\.\s+\w+(?:,?\s+Inc\.?)?\s*\(",  # "v. Wayfair, Inc. (2018)"
         r"\bSupreme\s+Court\b.{0,100}\bv\.\b",  # Supreme Court cases
@@ -450,6 +460,136 @@ class ExchangeReferenceFilter(CandidateFilter):
                     candidate=candidate,
                     passed=False,
                     reason=FilterReason.EXCHANGE_REFERENCE,
+                    filter_name=self.name,
+                )
+
+        return FilterResult(
+            candidate=candidate,
+            passed=True,
+            reason=FilterReason.PASSED,
+            filter_name=self.name,
+        )
+
+
+class CorporateStructureFilter(CandidateFilter):
+    """
+    Filters candidates mentioned in corporate structure context.
+
+    Parent/subsidiary/spin-off relationships are NOT business relationships
+    like customer/supplier/competitor.
+
+    Based on error analysis:
+    - GNW → ACT: Enact is a controlled subsidiary
+    - NVT → PNR: Pentair is former parent/acquirer
+    - CTA-PB → CTVA: EIDP is subsidiary of Corteva
+    """
+
+    CORPORATE_STRUCTURE_PATTERNS = [
+        # Subsidiary/affiliate relationships
+        r"\bsubsidiary\s+(?:of|company)\b",
+        r"\bcontrolled\s+(?:affiliate|subsidiary|entity)\b",
+        r"\bwholly[- ]owned\s+subsidiary\b",
+        r"\bparent\s+company\b",
+        r"\bholding\s+company\b",
+        # Ownership patterns (from validation error analysis)
+        r"\b(?:company\s+)?(?:that\s+)?owns\s+\w+\b",  # "company that owns Georgia Power"
+        r"\boperating\s+(?:companies|subsidiaries|utilities)\b",  # "operating companies"
+        # Spin-off/acquisition context
+        r"\bspin[- ]?off\s+(?:of|from)\b",
+        r"\bspun\s+off\s+from\b",
+        r"\bacquir(?:ed|ing)\s+\w+\s+from\b",
+        r"\bpurchased?\s+(?:the\s+)?(?:assets?|business)\s+(?:of|from)\b",
+        r"\b(?:former|previously)\s+(?:a\s+)?(?:part|division|segment)\s+of\b",
+        # Corporate lineage
+        r"\bcorporate\s+(?:lineage|structure|history)\b",
+        r"\borigins?\s+as\s+(?:a\s+)?(?:part|division)\s+of\b",
+    ]
+
+    def __init__(self, patterns: list[str] | None = None):
+        """Initialize with optional custom patterns."""
+        import re
+
+        if patterns is not None:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        else:
+            self.patterns = [
+                re.compile(p, re.IGNORECASE) for p in self.CORPORATE_STRUCTURE_PATTERNS
+            ]
+
+    @property
+    def name(self) -> str:
+        return "corporate_structure"
+
+    def filter(self, candidate: Candidate, context: dict | None = None) -> FilterResult:
+        """Filter if candidate is in corporate structure context."""
+        text_to_check = candidate.sentence.lower()
+
+        for pattern in self.patterns:
+            if pattern.search(text_to_check):
+                return FilterResult(
+                    candidate=candidate,
+                    passed=False,
+                    reason=FilterReason.CORPORATE_STRUCTURE,
+                    filter_name=self.name,
+                )
+
+        return FilterResult(
+            candidate=candidate,
+            passed=True,
+            reason=FilterReason.PASSED,
+            filter_name=self.name,
+        )
+
+
+class PlatformDependencyFilter(CandidateFilter):
+    """
+    Filters candidates that are platform/distribution dependencies.
+
+    App stores and OS platforms are NOT competitors in most contexts.
+
+    Based on error analysis:
+    - ZIP → AAPL: platform dependency (iOS App Store)
+    - SIRI → AAPL: app store distribution
+    """
+
+    PLATFORM_PATTERNS = [
+        # App store distribution
+        r"\bapp\s+store(?:s)?\s+(?:operated|run|owned)\s+by\b",
+        r"\bdistributed\s+(?:via|through)\s+(?:app\s+)?stores?\b",
+        r"\b(?:Apple|Google)\s+(?:App\s+Store|Play\s+Store)\b",
+        r"\b(?:iOS|Android)\s+(?:app\s+)?store\b",
+        # Operating system dependency
+        r"\boperating\s+system(?:s)?\s+(?:such\s+as|like|including)\b",
+        r"\bmobile\s+operating\s+system(?:s)?\b",
+        r"\b(?:Apple's|Google's)\s+(?:iOS|Android)\b",
+        # Platform interoperability
+        r"\binteroperability\s+(?:of|with)\s+.{0,30}(?:mobile\s+)?(?:app|platform)\b",
+        r"\bdependent\s+on\s+.{0,30}(?:operating\s+system|platform|app\s+store)\b",
+    ]
+
+    def __init__(self, patterns: list[str] | None = None):
+        """Initialize with optional custom patterns."""
+        import re
+
+        if patterns is not None:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        else:
+            self.patterns = [re.compile(p, re.IGNORECASE) for p in self.PLATFORM_PATTERNS]
+
+    @property
+    def name(self) -> str:
+        return "platform_dependency"
+
+    def filter(self, candidate: Candidate, context: dict | None = None) -> FilterResult:
+        """Filter if candidate is a platform dependency context."""
+        text_to_check = candidate.sentence.lower()
+
+        for pattern in self.patterns:
+            if pattern.search(text_to_check):
+                return FilterResult(
+                    candidate=candidate,
+                    passed=False,
+                    reason=FilterReason.PLATFORM_DEPENDENCY,
                     filter_name=self.name,
                 )
 
@@ -538,6 +678,8 @@ def filter_candidate(
             LengthFilter(),
             BiographicalContextFilter(),
             ExchangeReferenceFilter(),
+            CorporateStructureFilter(),
+            PlatformDependencyFilter(),
         ]
 
     for f in filters:
@@ -572,6 +714,8 @@ def filter_candidates_with_stats(
             LengthFilter(),
             BiographicalContextFilter(),
             ExchangeReferenceFilter(),
+            CorporateStructureFilter(),
+            PlatformDependencyFilter(),
         ]
 
     passed: list[Candidate] = []
