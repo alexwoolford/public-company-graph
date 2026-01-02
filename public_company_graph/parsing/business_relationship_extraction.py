@@ -394,10 +394,6 @@ NAME_BLOCKLIST = {
     "target",  # Goal/objective, not Target Corp - high false positive rate
     "comstock",  # Power plant names, geographic locations - not Comstock Inc
     "enact",  # Verb meaning "to make law" - not Enact Holdings
-    "ma",  # Marketing Authorization (pharmaceutical) - not Mastercard
-    "dg",  # Often subsidiary names like "DG Research" - not Dollar General
-    "idn",  # Integrated Delivery Networks (healthcare) - not Identiv
-    "brady",  # Power plant/facility name (Brady Hot Springs) - not Brady Corp
     # Exchange/listing venue names (these refer to the exchange, not the company)
     "nasdaq",  # Stock exchange listings like "NASDAQ: AAPL"
     "nyse",  # NYSE listings

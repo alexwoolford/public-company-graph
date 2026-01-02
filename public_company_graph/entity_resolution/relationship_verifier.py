@@ -59,19 +59,13 @@ class RelationshipVerifier:
 
     # Patterns that indicate COMPETITOR relationship
     COMPETITOR_PATTERNS = [
-        (r"\bcompetitors?\s+(?:include|are|consist|such as)\b", 0.95),
+        (r"\bcompet(?:e|es|ed|ing|itor|itors)\s+(?:with|against|from)\b", 0.9),
+        (r"\bcompetition\s+(?:from|with|includes?)\b", 0.9),
         (r"\bprincipal\s+competitors?\b", 0.95),
         (r"\bmain\s+competitors?\b", 0.95),
-        (r"\b(?:current\s+and\s+)?potential\s+competitors\b", 0.95),  # "potential competitors"
-        (r"\bcompetition\s+(?:from|includes?|also coming from)\b", 0.9),
-        (r"\bcompetition\s+coming\s+from\b", 0.9),
-        (r"\bcompete(?:s)?\s+with\s+us\b", 0.9),  # "compete with us"
-        (r"\bwe\s+compete\s+with\b", 0.9),  # "We compete with..."
+        (r"\bcompetitors?\s+(?:include|are|consist)\b", 0.95),
         (r"\brival(?:s|ry)?\b", 0.7),
         (r"\bcompetitive\s+(?:landscape|environment|market)\b", 0.6),
-        # Additional patterns from error analysis
-        (r"\bdominated\s+by\b", 0.85),  # "market dominated by Cisco"
-        (r"\bmarket\s+(?:led|dominated)\s+by\b", 0.9),
     ]
 
     # Patterns that indicate SUPPLIER relationship
@@ -117,14 +111,6 @@ class RelationshipVerifier:
         (r"\bboard\s+of\s+directors\b", "biographical"),  # Director relationship
         (r"\bserves?\s+as\s+(?:a\s+)?director\b", "biographical"),  # Director
         (r'"[^"]*of\s+[^"]*"', "figurative_use"),  # Figurative use like "Starbucks of X"
-        # Corporate structure patterns - be careful to match only when mention IS the subsidiary
-        # (Removed overly broad patterns that matched subsidiaries of OTHER companies)
-        (r"\bpower\s+plant\b", "facility_name"),  # Power plant names like "Brady"
-        (r"\bgeothermal\s+(?:power|plant|facility)\b", "facility_name"),
-        (r"\bapp\s+store(?:s)?\s+operated\s+by\b", "platform_distributor"),  # App stores
-        (r"\bdistributed\s+via\s+app\s+stores?\b", "platform_distributor"),
-        (r"\bpayment\s+network(?:s)?\s+such\s+as\b", "payment_network"),  # Visa, Mastercard
-        (r"\bagreements?\s+(?:we\s+have\s+)?with\s+payment\s+networks?\b", "payment_network"),
     ]
 
     def __init__(self):
