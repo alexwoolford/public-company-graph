@@ -254,32 +254,178 @@ class LLMRelationshipVerifier:
             "count": self._cache.count(CACHE_NAMESPACE),
         }
 
-    def verify_batch(
+    def verify_batch_parallel(
         self,
         relationships: list[dict],
-        max_concurrent: int = 5,
+        max_concurrent: int = 20,
     ) -> list[LLMVerificationResult]:
         """
-        Verify multiple relationships.
+        Verify multiple relationships in parallel using asyncio.
 
         Args:
-            relationships: List of dicts with context, source, target, relationship
-            max_concurrent: Max concurrent API calls
+            relationships: List of dicts with context, source_company, target_company, relationship_type
+            max_concurrent: Max concurrent API calls (default: 20)
 
         Returns:
-            List of verification results
+            List of verification results in same order as input
         """
-        results = []
-        for rel in relationships:
-            result = self.verify(
-                context=rel["context"],
-                source_company=rel["source_company"],
-                target_company=rel["target_company"],
-                claimed_relationship=rel["relationship_type"],
-            )
-            results.append(result)
+        import asyncio
 
-        return results
+        from openai import AsyncOpenAI
+
+        # Check cache first - filter out already cached
+        uncached_indices = []
+        results: list[LLMVerificationResult | None] = [None] * len(relationships)
+
+        for i, rel in enumerate(relationships):
+            cache_key = self._get_cache_key(
+                rel["context"],
+                rel["source_company"],
+                rel["target_company"],
+                rel["relationship_type"],
+            )
+            cached = self._cache.get(CACHE_NAMESPACE, cache_key)
+            if cached is not None:
+                results[i] = LLMVerificationResult(
+                    result=VerificationResult(cached["result"]),
+                    confidence=cached["confidence"],
+                    explanation=cached["explanation"],
+                    suggested_relationship=cached.get("suggested_relationship"),
+                    cost_tokens=0,
+                )
+            else:
+                uncached_indices.append(i)
+
+        if not uncached_indices:
+            logger.info(f"All {len(relationships)} verifications found in cache")
+            return results  # type: ignore
+
+        logger.info(
+            f"Verifying {len(uncached_indices)} relationships "
+            f"({len(relationships) - len(uncached_indices)} cached)"
+        )
+
+        # Async verification function
+        async def verify_one(
+            client: AsyncOpenAI, idx: int, rel: dict, semaphore: asyncio.Semaphore
+        ) -> tuple[int, LLMVerificationResult]:
+            async with semaphore:
+                rel_desc = RELATIONSHIP_DESCRIPTIONS.get(
+                    rel["relationship_type"], "has a business relationship with"
+                )
+                prompt = VERIFICATION_PROMPT.format(
+                    context=rel["context"][:1500],
+                    source_company=rel["source_company"],
+                    target_company=rel["target_company"],
+                    relationship_type=rel["relationship_type"],
+                    relationship_description=rel_desc,
+                )
+
+                try:
+                    response = await client.chat.completions.create(
+                        model=self.model,
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are a precise relationship extraction validator. Respond only with JSON.",
+                            },
+                            {"role": "user", "content": prompt},
+                        ],
+                        temperature=0.0,
+                        max_tokens=200,
+                    )
+
+                    content = response.choices[0].message.content
+                    total_tokens = response.usage.total_tokens if response.usage else 0
+
+                    try:
+                        data = json.loads(content)
+                    except json.JSONDecodeError:
+                        return idx, LLMVerificationResult(
+                            result=VerificationResult.UNCERTAIN,
+                            confidence=0.0,
+                            explanation="Failed to parse LLM response",
+                            suggested_relationship=None,
+                            cost_tokens=total_tokens,
+                        )
+
+                    verified = data.get("verified", False)
+                    confidence = data.get("confidence", 0.5)
+                    explanation = data.get("explanation", "")
+                    actual_rel = data.get("actual_relationship", rel["relationship_type"])
+
+                    if verified and confidence >= 0.7:
+                        result = VerificationResult.CONFIRMED
+                    elif not verified and confidence >= 0.7:
+                        result = VerificationResult.REJECTED
+                    else:
+                        result = VerificationResult.UNCERTAIN
+
+                    llm_result = LLMVerificationResult(
+                        result=result,
+                        confidence=confidence,
+                        explanation=explanation,
+                        suggested_relationship=(
+                            actual_rel if actual_rel != rel["relationship_type"] else None
+                        ),
+                        cost_tokens=total_tokens,
+                    )
+
+                    # Cache the result
+                    cache_key = self._get_cache_key(
+                        rel["context"],
+                        rel["source_company"],
+                        rel["target_company"],
+                        rel["relationship_type"],
+                    )
+                    self._cache.set(
+                        CACHE_NAMESPACE,
+                        cache_key,
+                        {
+                            "result": result.value,
+                            "confidence": confidence,
+                            "explanation": explanation,
+                            "suggested_relationship": llm_result.suggested_relationship,
+                        },
+                    )
+
+                    return idx, llm_result
+
+                except Exception as e:
+                    logger.error(f"LLM verification failed: {e}")
+                    return idx, LLMVerificationResult(
+                        result=VerificationResult.UNCERTAIN,
+                        confidence=0.0,
+                        explanation=f"Error: {e}",
+                        suggested_relationship=None,
+                        cost_tokens=0,
+                    )
+
+        async def verify_all():
+            import os
+
+            from dotenv import load_dotenv
+
+            load_dotenv()
+            client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            semaphore = asyncio.Semaphore(max_concurrent)
+
+            tasks = [
+                verify_one(client, idx, relationships[idx], semaphore) for idx in uncached_indices
+            ]
+
+            completed = 0
+            for coro in asyncio.as_completed(tasks):
+                idx, result = await coro
+                results[idx] = result
+                completed += 1
+                if completed % 50 == 0:
+                    logger.info(f"Verified {completed}/{len(uncached_indices)}")
+
+        # Run async
+        asyncio.run(verify_all())
+
+        return results  # type: ignore
 
 
 def estimate_verification_cost(

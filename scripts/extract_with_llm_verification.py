@@ -23,7 +23,6 @@ import logging
 import sys
 import time
 from collections import defaultdict
-from pathlib import Path
 from typing import Any
 
 from public_company_graph.cache import get_cache
@@ -75,10 +74,14 @@ def extract_with_verification(
     limit: int | None = None,
     verify_supplier_customer: bool = True,
     embedding_threshold: float = 0.30,
-    save_progress_path: Path | None = None,
+    max_concurrent: int = 20,
 ) -> dict[str, list[dict[str, Any]]]:
     """
-    Extract relationships with LLM verification for SUPPLIER/CUSTOMER.
+    Extract relationships with PARALLEL LLM verification for SUPPLIER/CUSTOMER.
+
+    Two-phase approach:
+    1. Extract all candidates from all companies (fast)
+    2. Batch verify SUPPLIER/CUSTOMER in parallel (uses async)
 
     Args:
         cache: AppCache instance
@@ -89,20 +92,12 @@ def extract_with_verification(
         limit: Max companies to process
         verify_supplier_customer: If True, use LLM to verify SUPPLIER/CUSTOMER
         embedding_threshold: Threshold for embedding-based filtering
-        save_progress_path: Path to save progress (for resume)
+        max_concurrent: Max concurrent LLM verification calls (default: 20)
 
     Returns:
         Dict mapping neo4j_type → list of verified relationships
     """
     results: dict[str, list[dict[str, Any]]] = defaultdict(list)
-
-    # Initialize LLM verifier if needed
-    verifier = None
-    if verify_supplier_customer and any(
-        t in TYPES_NEEDING_VERIFICATION for t in relationship_types
-    ):
-        verifier = LLMRelationshipVerifier(model="gpt-4o-mini")
-        logger.info("LLM verifier initialized (gpt-4o-mini)")
 
     # Get cached 10-K data
     keys = cache.keys(namespace=CACHE_NAMESPACE, limit=limit or 100000)
@@ -115,10 +110,14 @@ def extract_with_verification(
         "verified_facts": defaultdict(int),
         "verified_candidates": defaultdict(int),
         "rejected": defaultdict(int),
-        "llm_calls": 0,
-        "llm_tokens": 0,
     }
 
+    # PHASE 1: Extract all candidates (fast, no LLM calls)
+    logger.info("=" * 60)
+    logger.info("PHASE 1: Extracting candidates...")
+    logger.info("=" * 60)
+
+    all_candidates: list[dict[str, Any]] = []  # For LLM verification
     start_time = time.time()
 
     for i, cik in enumerate(keys):
@@ -161,72 +160,36 @@ def extract_with_verification(
                 # Determine tier based on embedding similarity
                 tier = get_confidence_tier(neo4j_type, embedding_sim)
 
-                # For SUPPLIER/CUSTOMER, use LLM verification
+                # For SUPPLIER/CUSTOMER, queue for LLM verification
                 if (
                     rel_type in TYPES_NEEDING_VERIFICATION
-                    and verifier
+                    and verify_supplier_customer
                     and tier != ConfidenceTier.LOW
                 ):
-                    verification = verifier.verify(
-                        context=context,
-                        source_company=source_company,
-                        target_company=target_name,
-                        claimed_relationship=neo4j_type,
+                    all_candidates.append(
+                        {
+                            "cik": cik,
+                            "rel_type": rel_type,
+                            "neo4j_type": neo4j_type,
+                            "rel": rel,
+                            "context": context,
+                            "source_company": source_company,
+                            "target_company": target_name,
+                            "relationship_type": neo4j_type,
+                            "tier": tier,
+                        }
                     )
-                    stats["llm_calls"] += 1
-                    stats["llm_tokens"] += verification.cost_tokens
-
-                    if verification.result == VerificationResult.CONFIRMED:
-                        # LLM confirmed - this is a fact
-                        rel["llm_verified"] = True
-                        rel["llm_confidence"] = verification.confidence
-                        rel["llm_explanation"] = verification.explanation
-                        rel["confidence_tier"] = "high"
-                        results[neo4j_type].append(
-                            {
-                                "source_cik": cik,
-                                **rel,
-                            }
-                        )
-                        stats["verified_facts"][rel_type.value] += 1
-                    elif verification.result == VerificationResult.UNCERTAIN:
-                        # Uncertain - store as candidate
-                        rel["llm_verified"] = False
-                        rel["llm_confidence"] = verification.confidence
-                        rel["llm_explanation"] = verification.explanation
-                        rel["confidence_tier"] = "medium"
-                        candidate_type = f"CANDIDATE_{rel_type.name}"
-                        results[candidate_type].append(
-                            {
-                                "source_cik": cik,
-                                **rel,
-                            }
-                        )
-                        stats["verified_candidates"][rel_type.value] += 1
-                    else:
-                        # Rejected
-                        stats["rejected"][rel_type.value] += 1
 
                 else:
-                    # For COMPETITOR/PARTNER, use embedding-based tiers
+                    # For COMPETITOR/PARTNER, use embedding-based tiers directly
                     if tier == ConfidenceTier.HIGH:
                         rel["confidence_tier"] = "high"
-                        results[neo4j_type].append(
-                            {
-                                "source_cik": cik,
-                                **rel,
-                            }
-                        )
+                        results[neo4j_type].append({"source_cik": cik, **rel})
                         stats["verified_facts"][rel_type.value] += 1
                     elif tier == ConfidenceTier.MEDIUM:
                         rel["confidence_tier"] = "medium"
                         candidate_type = f"CANDIDATE_{rel_type.name}"
-                        results[candidate_type].append(
-                            {
-                                "source_cik": cik,
-                                **rel,
-                            }
-                        )
+                        results[candidate_type].append({"source_cik": cik, **rel})
                         stats["verified_candidates"][rel_type.value] += 1
                     else:
                         stats["rejected"][rel_type.value] += 1
@@ -234,21 +197,77 @@ def extract_with_verification(
         stats["companies_processed"] += 1
 
         # Progress logging
-        if (i + 1) % 50 == 0:
+        if (i + 1) % 500 == 0:
             elapsed = time.time() - start_time
             rate = stats["companies_processed"] / elapsed if elapsed > 0 else 0
             logger.info(
-                f"Progress: {stats['companies_processed']}/{len(keys)} "
-                f"({rate:.1f}/sec) | LLM calls: {stats['llm_calls']}"
+                f"Extracted: {stats['companies_processed']}/{len(keys)} "
+                f"({rate:.1f}/sec) | Candidates for LLM: {len(all_candidates)}"
             )
 
+    extraction_time = time.time() - start_time
+    logger.info(f"Phase 1 complete: {len(all_candidates)} candidates for LLM verification")
+    logger.info(f"Extraction time: {extraction_time:.1f}s")
+
+    # PHASE 2: Parallel LLM verification for SUPPLIER/CUSTOMER
+    if all_candidates and verify_supplier_customer:
+        logger.info("=" * 60)
+        logger.info(f"PHASE 2: Parallel LLM verification ({len(all_candidates)} candidates)...")
+        logger.info("=" * 60)
+
+        verifier = LLMRelationshipVerifier(model="gpt-4o-mini")
+
+        # Prepare batch for verification
+        verification_batch = [
+            {
+                "context": c["context"],
+                "source_company": c["source_company"],
+                "target_company": c["target_company"],
+                "relationship_type": c["relationship_type"],
+            }
+            for c in all_candidates
+        ]
+
+        # Run parallel verification
+        verification_start = time.time()
+        verification_results = verifier.verify_batch_parallel(
+            verification_batch, max_concurrent=max_concurrent
+        )
+        verification_time = time.time() - verification_start
+        logger.info(f"Verification time: {verification_time:.1f}s")
+
+        # Process results
+        for candidate, verification in zip(all_candidates, verification_results, strict=True):
+            rel = candidate["rel"]
+            rel_type = candidate["rel_type"]
+            neo4j_type = candidate["neo4j_type"]
+            cik = candidate["cik"]
+
+            if verification.result == VerificationResult.CONFIRMED:
+                rel["llm_verified"] = True
+                rel["llm_confidence"] = verification.confidence
+                rel["llm_explanation"] = verification.explanation
+                rel["confidence_tier"] = "high"
+                results[neo4j_type].append({"source_cik": cik, **rel})
+                stats["verified_facts"][rel_type.value] += 1
+            elif verification.result == VerificationResult.UNCERTAIN:
+                rel["llm_verified"] = False
+                rel["llm_confidence"] = verification.confidence
+                rel["llm_explanation"] = verification.explanation
+                rel["confidence_tier"] = "medium"
+                candidate_type = f"CANDIDATE_{rel_type.name}"
+                results[candidate_type].append({"source_cik": cik, **rel})
+                stats["verified_candidates"][rel_type.value] += 1
+            else:
+                stats["rejected"][rel_type.value] += 1
+
     # Final stats
+    total_time = time.time() - start_time
     logger.info("=" * 60)
     logger.info("EXTRACTION COMPLETE")
     logger.info("=" * 60)
     logger.info(f"Companies processed: {stats['companies_processed']}")
-    logger.info(f"LLM verification calls: {stats['llm_calls']}")
-    logger.info(f"LLM tokens used: {stats['llm_tokens']:,}")
+    logger.info(f"Total time: {total_time:.1f}s")
 
     for rel_type in relationship_types:
         name = rel_type.value
@@ -362,6 +381,12 @@ def main():
         help="Skip LLM verification for SUPPLIER/CUSTOMER",
     )
     parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=20,
+        help="Max concurrent LLM verification calls (default: 20)",
+    )
+    parser.add_argument(
         "--estimate-cost",
         action="store_true",
         help="Estimate cost without running",
@@ -446,6 +471,7 @@ def main():
             limit=args.limit,
             verify_supplier_customer=not args.skip_llm_verification,
             embedding_threshold=args.embedding_threshold,
+            max_concurrent=args.concurrency,
         )
 
         # Load into Neo4j
