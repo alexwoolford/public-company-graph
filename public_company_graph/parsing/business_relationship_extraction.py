@@ -650,6 +650,8 @@ def extract_and_resolve_relationships(
     lookup: CompanyLookup,
     relationship_type: RelationshipType,
     self_cik: str | None = None,
+    use_layered_validation: bool = False,
+    embedding_threshold: float = 0.30,
 ) -> list[dict[str, Any]]:
     """
     Extract and resolve business relationships from 10-K text.
@@ -660,12 +662,23 @@ def extract_and_resolve_relationships(
         lookup: CompanyLookup table
         relationship_type: Type of relationship to extract
         self_cik: CIK of the company filing (to exclude self-references)
+        use_layered_validation: If True, apply embedding + pattern validation
+        embedding_threshold: Minimum similarity for embedding check (default 0.30)
 
     Returns:
         List of dicts with: cik, ticker, name, confidence, raw_mention, context
     """
     results = []
     seen_ciks: set[str] = set()
+
+    # Initialize layered validator if requested
+    validator = None
+    if use_layered_validation:
+        from public_company_graph.entity_resolution.layered_validator import (
+            LayeredEntityValidator,
+        )
+
+        validator = LayeredEntityValidator(embedding_threshold=embedding_threshold)
 
     # Combine texts
     texts = []
@@ -698,18 +711,37 @@ def extract_and_resolve_relationships(
                 resolved = _resolve_candidate(candidate, lookup, self_cik)
 
                 if resolved and resolved["cik"] not in seen_ciks:
+                    # Apply layered validation if enabled
+                    validation_result = None
+                    if validator:
+                        validation_result = validator.validate(
+                            context=sentence[:500],
+                            mention=candidate,
+                            ticker=resolved["ticker"],
+                            company_name=resolved["name"],
+                            relationship_type=relationship_type.value,
+                        )
+                        if not validation_result.accepted:
+                            # Skip this candidate - failed validation
+                            continue
+
                     seen_ciks.add(resolved["cik"])
-                    results.append(
-                        {
-                            "target_cik": resolved["cik"],
-                            "target_ticker": resolved["ticker"],
-                            "target_name": resolved["name"],
-                            "confidence": resolved["confidence"],
-                            "raw_mention": candidate,
-                            "context": sentence[:200],
-                            "relationship_type": relationship_type.value,
-                        }
-                    )
+                    result_dict = {
+                        "target_cik": resolved["cik"],
+                        "target_ticker": resolved["ticker"],
+                        "target_name": resolved["name"],
+                        "confidence": resolved["confidence"],
+                        "raw_mention": candidate,
+                        "context": sentence[:200],
+                        "relationship_type": relationship_type.value,
+                    }
+
+                    # Add validation metadata if available
+                    if validation_result:
+                        result_dict["embedding_similarity"] = validation_result.embedding_similarity
+                        result_dict["validation_passed"] = True
+
+                    results.append(result_dict)
 
     return results
 

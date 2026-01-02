@@ -60,12 +60,14 @@ class RelationshipVerifier:
     # Patterns that indicate COMPETITOR relationship
     COMPETITOR_PATTERNS = [
         (r"\bcompet(?:e|es|ed|ing|itor|itors)\s+(?:with|against|from)\b", 0.9),
-        (r"\bcompetition\s+(?:from|with|includes?)\b", 0.9),
+        (r"\bcompetition\s+(?:\w+\s+)*?(?:from|with|includes?)\b", 0.9),  # Allow words between
+        (r"\bcompetition\s+(?:also\s+)?coming\s+from\b", 0.95),  # "competition coming from"
         (r"\bprincipal\s+competitors?\b", 0.95),
         (r"\bmain\s+competitors?\b", 0.95),
         (r"\bcompetitors?\s+(?:include|are|consist)\b", 0.95),
         (r"\brival(?:s|ry)?\b", 0.7),
         (r"\bcompetitive\s+(?:landscape|environment|market)\b", 0.6),
+        (r"\bdominated\s+by\b", 0.8),  # "market dominated by X"
     ]
 
     # Patterns that indicate SUPPLIER relationship
