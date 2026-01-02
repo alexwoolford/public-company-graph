@@ -100,3 +100,4 @@ data/10k_filings/**/*
 tests/fixtures/**/*.log
 
 .cursorignore
+data/embedding_cache/

@@ -69,6 +69,29 @@ class TestRelationshipVerifier:
         assert result.result == VerificationResult.CONTRADICTED
         assert result.suggested_type == RelationshipType.COMPETITOR
 
+    def test_contradicts_supplier_when_competition_also_coming_from(self, verifier):
+        """Should contradict supplier when 'competition also coming from' found."""
+        # Key pattern: "competition also coming from ... vendors" should be COMPETITOR
+        context = (
+            "The data center markets have been dominated by Cisco, "
+            "with competition also coming from other large network equipment "
+            "and system vendors, including Dell and HP."
+        )
+        result = verifier.verify(RelationshipType.SUPPLIER, context, "Dell")
+        assert result.result == VerificationResult.CONTRADICTED
+        assert result.suggested_type == RelationshipType.COMPETITOR
+
+    def test_contradicts_customer_when_competitors_including(self, verifier):
+        """Should contradict customer when 'competitors, including' found."""
+        # Key pattern: "competitors, including" should recognize COMPETITOR
+        context = (
+            "Our competitors, including, but not limited to, HubSpot, "
+            "Qualtrics, and Sprout Social mainly consist of point solutions."
+        )
+        result = verifier.verify(RelationshipType.CUSTOMER, context, "HubSpot")
+        assert result.result == VerificationResult.CONTRADICTED
+        assert result.suggested_type == RelationshipType.COMPETITOR
+
     # === CUSTOMER VERIFICATION ===
 
     def test_confirms_customer_from_sell_pattern(self, verifier):

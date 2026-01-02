@@ -62,10 +62,12 @@ class RelationshipVerifier:
     # Avoid overfitting to specific examples.
     COMPETITOR_PATTERNS = [
         (r"\bcompet(?:e|es|ed|ing|itor|itors)\s+(?:with|against|from)\b", 0.9),
-        (r"\bcompetition\s+(?:from|with|includes?)\b", 0.9),
+        # Allow words between "competition" and "from" (e.g., "competition also coming from")
+        (r"\bcompetition\s+(?:\w+\s+)*?(?:from|with|includes?)\b", 0.9),
         (r"\bprincipal\s+competitors?\b", 0.95),
         (r"\bmain\s+competitors?\b", 0.95),
-        (r"\bcompetitors?\s+(?:include|are|consist)\b", 0.95),
+        # Handle "competitors, including" and "competitors include"
+        (r"\bcompetitors?,?\s+(?:include|including|are|consist)\b", 0.95),
         (r"\brival(?:s|ry)?\b", 0.7),
         (r"\bcompetitive\s+(?:landscape|environment|market)\b", 0.6),
     ]

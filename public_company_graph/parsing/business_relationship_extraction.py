@@ -849,6 +849,8 @@ def extract_all_relationships(
     lookup: CompanyLookup,
     self_cik: str | None = None,
     relationship_types: list[RelationshipType] | None = None,
+    use_layered_validation: bool = False,
+    embedding_threshold: float = 0.30,
 ) -> dict[RelationshipType, list[dict[str, Any]]]:
     """
     Extract all business relationships from 10-K text.
@@ -861,6 +863,8 @@ def extract_all_relationships(
         lookup: CompanyLookup table
         self_cik: CIK of the company filing
         relationship_types: Types to extract (default: all)
+        use_layered_validation: If True, apply embedding + pattern validation
+        embedding_threshold: Minimum similarity for embedding check
 
     Returns:
         Dict mapping relationship type → list of extracted relationships
@@ -876,6 +880,8 @@ def extract_all_relationships(
             lookup=lookup,
             relationship_type=rel_type,
             self_cik=self_cik,
+            use_layered_validation=use_layered_validation,
+            embedding_threshold=embedding_threshold,
         )
 
     return results

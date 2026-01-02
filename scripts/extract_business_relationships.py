@@ -80,6 +80,8 @@ def extract_relationships_from_cache(
     lookup: CompanyLookup,
     relationship_types: list[RelationshipType],
     limit: int | None = None,
+    use_validation: bool = True,
+    embedding_threshold: float = 0.30,
 ) -> dict[RelationshipType, dict[str, list[dict[str, Any]]]]:
     """
     Extract business relationships from cached 10-K data.
@@ -89,6 +91,8 @@ def extract_relationships_from_cache(
         lookup: CompanyLookup for entity resolution
         relationship_types: Types of relationships to extract
         limit: Optional limit on companies to process
+        use_validation: If True, apply layered validation (embedding + patterns)
+        embedding_threshold: Minimum similarity for embedding check
 
     Returns:
         Dict mapping relationship_type → {source_cik → list of relationship dicts}
@@ -108,6 +112,8 @@ def extract_relationships_from_cache(
 
     logger.info(f"Processing {len(keys)} companies from cache...")
     logger.info(f"Extracting relationship types: {[rt.value for rt in relationship_types]}")
+    if use_validation:
+        logger.info(f"Validation enabled with embedding threshold: {embedding_threshold}")
 
     start_time = time.time()
     last_log_time = start_time
@@ -133,6 +139,8 @@ def extract_relationships_from_cache(
             lookup=lookup,
             self_cik=cik,
             relationship_types=relationship_types,
+            use_layered_validation=use_validation,
+            embedding_threshold=embedding_threshold,
         )
 
         # Store results by relationship type
@@ -257,6 +265,133 @@ def load_relationships(
     return counts
 
 
+def load_relationships_tiered(
+    driver,
+    results: dict[RelationshipType, dict[str, list[dict[str, Any]]]],
+    database: str | None = None,
+    batch_size: int = BATCH_SIZE_LARGE,
+) -> dict[str, int]:
+    """
+    Load extracted relationships into Neo4j with tiered storage.
+
+    Creates different relationship types based on embedding similarity:
+    - HIGH confidence: HAS_COMPETITOR, HAS_SUPPLIER, etc. (facts)
+    - MEDIUM confidence: CANDIDATE_COMPETITOR, CANDIDATE_SUPPLIER, etc. (candidates)
+    - LOW confidence: Not created
+
+    All edges include evidence (context, similarity score, confidence tier).
+
+    Args:
+        driver: Neo4j driver
+        results: Extraction results by relationship type
+        database: Neo4j database name
+        batch_size: Batch size for UNWIND operations
+
+    Returns:
+        Dict mapping neo4j_relationship_type → count of relationships created
+    """
+    from public_company_graph.parsing.relationship_config import (
+        RELATIONSHIP_CONFIGS,
+        ConfidenceTier,
+        get_confidence_tier,
+    )
+
+    counts: dict[str, int] = {}
+
+    for rel_type, relationships_by_cik in results.items():
+        config = RELATIONSHIP_CONFIGS.get(rel_type.value)
+        if not config or not config.enabled:
+            logger.info(f"Skipping {rel_type.value} (not enabled)")
+            continue
+
+        # Separate relationships by tier
+        high_rels = []
+        medium_rels = []
+        low_count = 0
+
+        for source_cik, relationships in relationships_by_cik.items():
+            for rel in relationships:
+                embedding_sim = rel.get("embedding_similarity")
+                tier = get_confidence_tier(rel_type.value, embedding_sim)
+
+                # Build relationship dict with evidence
+                rel_dict = {
+                    "source_cik": source_cik,
+                    "target_cik": rel["target_cik"],
+                    "confidence": rel.get("confidence", 0.5),
+                    "raw_mention": (rel.get("raw_mention", "") or "")[:100].strip() or None,
+                    "context": (rel.get("context", "") or "")[:500].strip() or None,
+                    "embedding_similarity": embedding_sim,
+                    "confidence_tier": tier.value,
+                }
+
+                if tier == ConfidenceTier.HIGH:
+                    high_rels.append(rel_dict)
+                elif tier == ConfidenceTier.MEDIUM:
+                    medium_rels.append(rel_dict)
+                else:
+                    low_count += 1
+
+        logger.info(
+            f"{rel_type.value}: {len(high_rels)} high, "
+            f"{len(medium_rels)} medium, {low_count} low (skipped)"
+        )
+
+        # Load high-confidence facts
+        if high_rels:
+            neo4j_type = config.fact_type
+            created = _load_relationship_batch(driver, high_rels, neo4j_type, database, batch_size)
+            counts[neo4j_type] = created
+            logger.info(f"  ✓ {neo4j_type}: {created} facts created")
+
+        # Load medium-confidence candidates
+        if medium_rels:
+            neo4j_type = config.candidate_type
+            created = _load_relationship_batch(
+                driver, medium_rels, neo4j_type, database, batch_size
+            )
+            counts[neo4j_type] = created
+            logger.info(f"  ✓ {neo4j_type}: {created} candidates created")
+
+    return counts
+
+
+def _load_relationship_batch(
+    driver,
+    relationships: list[dict],
+    neo4j_type: str,
+    database: str | None,
+    batch_size: int,
+) -> int:
+    """Load a batch of relationships with a specific Neo4j type."""
+    if not relationships:
+        return 0
+
+    # Clean empty strings
+    relationships = clean_properties_batch(relationships)
+
+    total_created = 0
+    with driver.session(database=database) as session:
+        for i in range(0, len(relationships), batch_size):
+            batch = relationships[i : i + batch_size]
+
+            query = f"""
+            UNWIND $batch AS rel
+            MATCH (source:Company {{cik: rel.source_cik}})
+            MATCH (target:Company {{cik: rel.target_cik}})
+            MERGE (source)-[r:{neo4j_type}]->(target)
+            SET r += rel,
+                r.source = 'ten_k_filing',
+                r.extracted_at = datetime()
+            """
+
+            result = session.run(query, batch=batch)
+            summary = result.consume()
+            total_created += summary.counters.relationships_created
+
+    return total_created
+
+
 def calculate_confidence_tiers(
     driver,
     relationship_types: list[RelationshipType],
@@ -264,6 +399,9 @@ def calculate_confidence_tiers(
 ) -> dict[RelationshipType, dict[str, int]]:
     """
     Calculate confidence tiers for relationships based on graph structure.
+
+    NOTE: This is the legacy tier calculation based on graph structure.
+    The new tiered loading uses embedding similarity instead.
 
     Tiers:
     - high: Mutual relationships (both companies cite each other)
@@ -421,10 +559,35 @@ def main():
     parser.add_argument(
         "--skip-tiers",
         action="store_true",
-        help="Skip confidence tier calculation (faster)",
+        help="Skip confidence tier calculation (faster, legacy mode only)",
+    )
+    parser.add_argument(
+        "--tiered",
+        action="store_true",
+        help="Use tiered storage: HIGH→facts, MEDIUM→candidates, LOW→skip",
+    )
+    parser.add_argument(
+        "--validation",
+        action="store_true",
+        default=True,
+        help="Enable layered validation (embedding + patterns)",
+    )
+    parser.add_argument(
+        "--no-validation",
+        action="store_true",
+        help="Disable layered validation (faster but lower precision)",
+    )
+    parser.add_argument(
+        "--embedding-threshold",
+        type=float,
+        default=0.30,
+        help="Embedding similarity threshold for validation (default: 0.30)",
     )
 
     args = parser.parse_args()
+
+    # Handle validation flag
+    use_validation = args.validation and not args.no_validation
 
     log = setup_logging("extract_business_relationships", execute=args.execute)
 
@@ -468,8 +631,17 @@ def main():
         # Extract relationships
         log.info("")
         log.info("2. Extracting relationships from 10-K data...")
+        log.info(f"   Validation: {'enabled' if use_validation else 'disabled'}")
+        log.info(f"   Embedding threshold: {args.embedding_threshold}")
+        log.info(f"   Tiered storage: {'enabled' if args.tiered else 'disabled'}")
+
         results = extract_relationships_from_cache(
-            cache, lookup, relationship_types, limit=args.limit
+            cache,
+            lookup,
+            relationship_types,
+            limit=args.limit,
+            use_validation=use_validation,
+            embedding_threshold=args.embedding_threshold,
         )
 
         # Analyze
@@ -484,8 +656,19 @@ def main():
 
         # Load relationships
         log.info("")
-        log.info("4. Loading relationships into Neo4j...")
-        counts = load_relationships(driver, results, database=database, batch_size=args.batch_size)
+        if args.tiered:
+            log.info("4. Loading relationships with TIERED storage...")
+            log.info("   HIGH confidence → facts (HAS_COMPETITOR, etc.)")
+            log.info("   MEDIUM confidence → candidates (CANDIDATE_COMPETITOR, etc.)")
+            log.info("   LOW confidence → skipped")
+            counts = load_relationships_tiered(
+                driver, results, database=database, batch_size=args.batch_size
+            )
+        else:
+            log.info("4. Loading relationships into Neo4j (legacy mode)...")
+            counts = load_relationships(
+                driver, results, database=database, batch_size=args.batch_size
+            )
 
         # Calculate confidence tiers
         if not args.skip_tiers:
