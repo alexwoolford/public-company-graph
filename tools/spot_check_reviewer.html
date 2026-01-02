@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Resolution Spot-Check Reviewer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #00d9ff;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .progress-bar {
+            background: #2a2a4a;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .stat-value.correct { color: #00ff88; }
+        .stat-value.incorrect { color: #ff6b6b; }
+        .stat-value.unsure { color: #ffd93d; }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .meta-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .meta-item {
+            background: rgba(0,217,255,0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .meta-label {
+            color: #00d9ff;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .meta-value {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .section-label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .context-box {
+            background: #0d0d1a;
+            border-left: 3px solid #00d9ff;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .highlight {
+            background: rgba(255,215,0,0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .ai-judgment {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .ai-judgment.correct {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.3);
+        }
+        .ai-judgment.incorrect {
+            background: rgba(255,107,107,0.1);
+            border: 1px solid rgba(255,107,107,0.3);
+        }
+        .ai-label {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .ai-label.correct { color: #00ff88; }
+        .ai-label.incorrect { color: #ff6b6b; }
+        .ai-reasoning {
+            background: #0d0d1a;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .btn-correct {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #000;
+        }
+        .btn-incorrect {
+            background: linear-gradient(135deg, #ff6b6b, #cc5555);
+            color: #fff;
+        }
+        .btn-unsure {
+            background: linear-gradient(135deg, #ffd93d, #ccad30);
+            color: #000;
+        }
+        .btn-skip {
+            background: rgba(255,255,255,0.1);
+            color: #888;
+        }
+        .keyboard-hint {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        kbd {
+            background: rgba(255,255,255,0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .file-input {
+            text-align: center;
+            padding: 40px;
+        }
+        .file-input input {
+            display: none;
+        }
+        .file-input label {
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .download-btn {
+            display: block;
+            margin: 20px auto;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: #000;
+        }
+        .complete {
+            text-align: center;
+            padding: 40px;
+        }
+        .complete h2 {
+            color: #00ff88;
+        }
+        .agreement-rate {
+            font-size: 48px;
+            font-weight: 600;
+            color: #00d9ff;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spot-Check Reviewer</h1>
+        <p class="subtitle">Entity Resolution AI Audit</p>
+
+        <!-- File upload -->
+        <div id="upload-section" class="card file-input">
+            <p>Load your spot-check CSV file:</p>
+            <input type="file" id="file-input" accept=".csv">
+            <label for="file-input">Choose er_spot_check.csv</label>
+            <p style="margin-top: 20px; color: #666; font-size: 13px;">
+                Or drag & drop the file here
+            </p>
+        </div>
+
+        <!-- Review section -->
+        <div id="review-section" class="hidden">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="stat-reviewed">0</div>
+                    <div>Reviewed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value correct" id="stat-agree">0</div>
+                    <div>Agree</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value incorrect" id="stat-disagree">0</div>
+                    <div>Disagree</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value unsure" id="stat-unsure">0</div>
+                    <div>Unsure</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="meta-row">
+                    <div class="meta-item">
+                        <div class="meta-label">Record</div>
+                        <div class="meta-value" id="record-num">1 / 50</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Source</div>
+                        <div class="meta-value" id="source-ticker">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Target</div>
+                        <div class="meta-value" id="target-ticker">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Relationship</div>
+                        <div class="meta-value" id="rel-type">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Raw Mention</div>
+                        <div class="meta-value" id="raw-mention">-</div>
+                    </div>
+                </div>
+
+                <div class="section-label">Context from 10-K Filing</div>
+                <div class="context-box" id="context">-</div>
+
+                <div class="section-label">AI Judgment</div>
+                <div class="ai-judgment" id="ai-judgment">
+                    <span>AI says:</span>
+                    <span class="ai-label" id="ai-label">-</span>
+                </div>
+
+                <div class="section-label">AI Reasoning</div>
+                <div class="ai-reasoning" id="ai-reasoning">-</div>
+
+                <div class="section-label">Your Judgment</div>
+                <p style="color: #888; font-size: 14px; margin-bottom: 15px;">
+                    <strong>Question:</strong> Is this a valid <span id="rel-echo">-</span> relationship between the source company and <span id="target-echo">-</span>?
+                    <br><span style="font-size: 12px; color: #666;">(Consider both: Is the entity correct? AND Is the relationship type accurate?)</span>
+                </p>
+                <div class="buttons">
+                    <button class="btn-correct" onclick="recordJudgment('agree')">✓ Agree with AI</button>
+                    <button class="btn-incorrect" onclick="recordJudgment('disagree')">✗ Disagree with AI</button>
+                    <button class="btn-unsure" onclick="recordJudgment('unsure')">? Unsure</button>
+                    <button class="btn-skip" onclick="recordJudgment('skip')">Skip</button>
+                </div>
+                <div class="keyboard-hint">
+                    <kbd>A</kbd> Agree &nbsp; <kbd>D</kbd> Disagree &nbsp; <kbd>U</kbd> Unsure &nbsp; <kbd>S</kbd> Skip
+                </div>
+            </div>
+        </div>
+
+        <!-- Complete section -->
+        <div id="complete-section" class="hidden card complete">
+            <h2>✓ Review Complete!</h2>
+            <p>Human-AI Agreement Rate:</p>
+            <div class="agreement-rate" id="agreement-rate">-</div>
+            <p id="interpretation"></p>
+            <button class="download-btn" onclick="downloadResults()">Download Results CSV</button>
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+        let currentIndex = 0;
+        let results = [];
+
+        // File handling
+        document.getElementById('file-input').addEventListener('change', handleFile);
+        document.body.addEventListener('dragover', e => e.preventDefault());
+        document.body.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) {
+                handleFile({ target: { files: e.dataTransfer.files } });
+            }
+        });
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parseCSV(e.target.result);
+                document.getElementById('upload-section').classList.add('hidden');
+                document.getElementById('review-section').classList.remove('hidden');
+                showRecord();
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            // Proper CSV parser that handles multi-line quoted fields
+            const records_parsed = [];
+            const headers = [];
+            let currentRecord = [];
+            let currentField = '';
+            let inQuotes = false;
+            let isFirstRecord = true;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        // Escaped quote
+                        currentField += '"';
+                        i++; // Skip next quote
+                    } else {
+                        // Toggle quote mode
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    // End of field
+                    currentRecord.push(currentField.trim());
+                    currentField = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    // End of record (skip \r in \r\n)
+                    if (char === '\r' && nextChar === '\n') {
+                        i++; // Skip the \n
+                    }
+                    if (currentField || currentRecord.length > 0) {
+                        currentRecord.push(currentField.trim());
+                        if (isFirstRecord) {
+                            headers.push(...currentRecord);
+                            isFirstRecord = false;
+                        } else if (currentRecord.some(f => f)) {
+                            records_parsed.push(currentRecord);
+                        }
+                        currentRecord = [];
+                        currentField = '';
+                    }
+                } else {
+                    currentField += char;
+                }
+            }
+
+            // Handle last record
+            if (currentField || currentRecord.length > 0) {
+                currentRecord.push(currentField.trim());
+                if (currentRecord.some(f => f)) {
+                    records_parsed.push(currentRecord);
+                }
+            }
+
+            // Convert to objects
+            for (const row of records_parsed) {
+                const record = {};
+                headers.forEach((h, idx) => record[h] = row[idx] || '');
+                records.push(record);
+                results.push({ ...record, human_label: '', human_notes: '' });
+            }
+
+            console.log(`Parsed ${records.length} records with ${headers.length} columns`);
+        }
+
+        function showRecord() {
+            if (currentIndex >= records.length) {
+                showComplete();
+                return;
+            }
+
+            const r = records[currentIndex];
+            document.getElementById('record-num').textContent = `${currentIndex + 1} / ${records.length}`;
+            document.getElementById('source-ticker').textContent = r.source_ticker || '-';
+            document.getElementById('target-ticker').textContent = r.target_ticker || '-';
+            document.getElementById('rel-type').textContent = (r.relationship_type || '').replace('HAS_', '');
+            document.getElementById('raw-mention').textContent = r.raw_mention || '-';
+
+            // Highlight mention in context, handle newlines
+            let context = r.context || '-';
+            // Escape HTML first
+            context = context.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Convert newlines to spaces for cleaner display
+            context = context.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+            // Highlight mention
+            if (r.raw_mention) {
+                const escapedMention = r.raw_mention.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const regex = new RegExp(`(${escapeRegex(escapedMention)})`, 'gi');
+                context = context.replace(regex, '<span class="highlight">$1</span>');
+            }
+            document.getElementById('context').innerHTML = context;
+
+            const aiLabel = r.ai_label || '-';
+            document.getElementById('ai-label').textContent = aiLabel.toUpperCase();
+            document.getElementById('ai-label').className = 'ai-label ' + aiLabel;
+            document.getElementById('ai-judgment').className = 'ai-judgment ' + aiLabel;
+            document.getElementById('ai-reasoning').textContent = r.ai_reasoning || 'No reasoning provided';
+
+            document.getElementById('rel-echo').textContent = (r.relationship_type || '').replace('HAS_', '');
+            document.getElementById('target-echo').textContent = r.target_ticker || '-';
+
+            // Progress
+            const progress = (currentIndex / records.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+
+            updateStats();
+        }
+
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function recordJudgment(judgment) {
+            if (judgment !== 'skip') {
+                results[currentIndex].human_label = judgment;
+            }
+            currentIndex++;
+            showRecord();
+        }
+
+        function updateStats() {
+            const reviewed = results.filter(r => r.human_label).length;
+            const agree = results.filter(r => r.human_label === 'agree').length;
+            const disagree = results.filter(r => r.human_label === 'disagree').length;
+            const unsure = results.filter(r => r.human_label === 'unsure').length;
+
+            document.getElementById('stat-reviewed').textContent = reviewed;
+            document.getElementById('stat-agree').textContent = agree;
+            document.getElementById('stat-disagree').textContent = disagree;
+            document.getElementById('stat-unsure').textContent = unsure;
+        }
+
+        function showComplete() {
+            document.getElementById('review-section').classList.add('hidden');
+            document.getElementById('complete-section').classList.remove('hidden');
+
+            const reviewed = results.filter(r => r.human_label && r.human_label !== 'skip');
+            const agree = results.filter(r => r.human_label === 'agree').length;
+            const disagree = results.filter(r => r.human_label === 'disagree').length;
+
+            const agreementRate = reviewed.length > 0
+                ? ((agree / (agree + disagree)) * 100).toFixed(1)
+                : 0;
+
+            document.getElementById('agreement-rate').textContent = agreementRate + '%';
+
+            let interpretation = '';
+            if (agreementRate >= 90) {
+                interpretation = '✓ Excellent! AI labels are highly trustworthy.';
+            } else if (agreementRate >= 80) {
+                interpretation = '○ Good. AI labels are reasonably reliable.';
+            } else if (agreementRate >= 70) {
+                interpretation = '△ Moderate. Some systematic AI errors may exist.';
+            } else {
+                interpretation = '✗ Low agreement. Investigate AI labeling methodology.';
+            }
+            document.getElementById('interpretation').textContent = interpretation;
+        }
+
+        function downloadResults() {
+            const headers = Object.keys(results[0]);
+            let csv = headers.join(',') + '\n';
+
+            results.forEach(r => {
+                const row = headers.map(h => {
+                    let val = r[h] || '';
+                    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+                        val = '"' + val.replace(/"/g, '""') + '"';
+                    }
+                    return val;
+                });
+                csv += row.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'er_spot_check_reviewed.csv';
+            a.click();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (document.getElementById('review-section').classList.contains('hidden')) return;
+
+            switch(e.key.toLowerCase()) {
+                case 'a': recordJudgment('agree'); break;
+                case 'd': recordJudgment('disagree'); break;
+                case 'u': recordJudgment('unsure'); break;
+                case 's': recordJudgment('skip'); break;
+            }
+        });
+    </script>
+</body>
+</html>

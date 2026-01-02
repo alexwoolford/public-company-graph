@@ -224,17 +224,24 @@ result = scorer.score(
 
 ### Evaluation Framework
 
-#### Ground Truth Creation
+#### AI Audit Dataset
 ```bash
-python scripts/create_er_ground_truth.py --output data/er_ground_truth.csv --sample-size 100
+# Sample relationships from graph
+python scripts/er_ai_audit.py sample --count 200 --append
+
+# Label with AI
+python scripts/er_ai_audit.py label --concurrency 10
+
+# Evaluate filters
+python scripts/er_ai_audit.py evaluate
+
+# Human spot-check (50 samples for verification)
+python scripts/er_ai_audit.py spot-check --count 50
 ```
 
-#### Evaluation
-```bash
-python scripts/evaluate_er.py --ground-truth data/er_ground_truth.csv --analyze-errors
-```
+**Note**: This produces AI-labeled evaluation data. Use `spot-check` for human verification.
 
-**Metrics**: Precision, Recall, F1 by confidence tier and relationship type
+**Metrics**: Precision on held-out test set (70/30 train/test split)
 
 ### Test Coverage
 - 53 new tests for character and semantic similarity
@@ -448,8 +455,8 @@ ORDER BY h1.value + h2.value DESC
 | `public_company_graph/entity_resolution/character.py` | N-gram character matching (Wide) ✅ |
 | `public_company_graph/entity_resolution/semantic.py` | Embedding-based matching (Deep) ✅ |
 | `public_company_graph/entity_resolution/combined_scorer.py` | Wide & Deep combined scoring ✅ |
-| `scripts/create_er_ground_truth.py` | Ground truth dataset creation ✅ |
-| `scripts/evaluate_er.py` | ER evaluation with P/R/F1 metrics ✅ |
+| `scripts/er_ai_audit.py` | AI-assisted evaluation (sample, label, evaluate, spot-check) ✅ |
+| `scripts/evaluate_layered_validator.py` | Layered validation evaluation ✅ |
 
 ---
 
