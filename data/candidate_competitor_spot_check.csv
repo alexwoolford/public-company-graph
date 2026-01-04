@@ -1,0 +1,98 @@
+source_ticker,source_name,target_ticker,target_name,similarity,context,is_valid
+ALB,ALBEMARLE CORP,TSLA,"Tesla, Inc.",0.3494,"Major competitors in lithium compounds include Sociedad Quimica y Minera de Chile S.A., Sichuan Tianqi Lithium, Jiangxi Ganfeng Lithium, Rio Tinto plc, Pilbara Minerals, Allkem, Tesla, Chengxin Lithiu",
+LPCN,Lipocine Inc.,PRGO,PERRIGO Co plc,0.3493,"The following T-replacement therapies currently
+on the market in the United States would compete with TLANDO:
+
+| · | T-gels, such as AndroGel (marketed by Abbvie) and Perrigo's AB-rated 1% generic of ",
+AVAV,AeroVironment Inc,TDY,TELEDYNE TECHNOLOGIES INC,0.3492,"Our current principal SUAS competitors include Elbit Systems Ltd., Quantum-Systems, Inc., Edge Autonomy, Teledyne Technologies, Inc., Sierra Nevada Corporation and Lockheed Martin Corporation.",
+FONR,FONAR CORP,GE,GENERAL ELECTRIC CO,0.3489,"Such
+                                         competitors would include General Electric, Siemens, Hitachi and Phillips.",
+RNG,"RingCentral, Inc.",LTUM,Lithium Corp,0.3483,"We also face competition from digital engagement vendors such as Brand Embassy Ltd, eGain Corporation, Lithium Technologies, LLC, LivePerson, Inc., SparkCentral Inc., among others named above that may",
+SIGA,SIGA TECHNOLOGIES INC,MRBK,Meridian Corp,0.3472,"International Promotion Agreement
+
+Under the terms of the International Promotion Agreement, as amended, which has an initial term that expires on May 31, 2024, Meridian was granted exclusive rights t",
+ACFN,"ACORN ENERGY, INC.",PG,PROCTER & GAMBLE Co,0.3470,"There
+are two types of competitors in the PG marketplace: independent monitoring organizations (such as OmniMetrix) who produce the
+monitoring systems (but not the equipment being monitored); and OEMs",
+RAPP,"Rapport Therapeutics, Inc.",VERX,"Vertex, Inc.",0.3469,"Our competition may also include other programs in clinical development in peripheral neuropathic pain, such as VX-548 being developed by Vertex, Inc., LX9211 being developed by Lexicon Pharmaceutical",
+WINA,WINMARK CORP,WMT,Walmart Inc.,0.3469,"​
+Our Once Upon A Child franchisees compete primarily with large retailers such as Walmart, Target and various specialty children’s retail stores such as Carter’s and Gap Kids.",
+XYL,Xylem Inc.,URI,"UNITED RENTALS, INC.",0.3469,"Our key competitors in the Water Infrastructure segment include KSB Inc., Sulzer Ltd., Evoqua Water Technologies, United Rentals, Trojan (Danaher Corporation) and Grundfos, among others.",
+DCGO,DocGo Inc.,WMT,Walmart Inc.,0.3467,"Competition could also increase from large technology companies, such as Apple, Amazon, Facebook, Verizon or Microsoft, who may develop their own telehealth or mobile health solutions or acquire exist",
+AMCX,AMC Networks Inc.,AAPL,Apple Inc.,0.3460,"Increased competition from additional entrants into the market for development and production of original programming, such as Apple, Netflix, Amazon Prime and Hulu, increases our programming content ",
+FDMT,"4D Molecular Therapeutics, Inc.",VERX,"Vertex, Inc.",0.3452,"We consider our most direct competitors with respect to 4D-710 for the treatment of cystic fibrosis lung disease to be Vertex, which has several approved CFTR modulators, as well as other gene therapy",
+JTAI,Jet.AI Inc.,TXT,TEXTRON INC,0.3450,"Because
+all major manufacturers of super-mid or large cabin aircraft such as Gulfstream, Falcon, Bombardier, Embraer, and Textron each have one
+to three year waiting lists for super-mid-size jets, man",
+HOOD,"Robinhood Markets, Inc.",HSDT,Solana Co,0.3449,If we proactively remove certain cryptocurrencies from our platform because the SEC or a court has asserted or determined they constitute securities or because they share similarities with such crypto,
+GRMN,GARMIN LTD,JOUT,JOHNSON OUTDOORS INC,0.3446,"For marine products, Garmin believes that its principal competitors are Furuno, Johnson Outdoors, Navico, and Raymarine.",
+SHEN,SHENANDOAH TELECOMMUNICATIONS CO/VA/,NFLX,NETFLIX INC,0.3442,"Incumbent cable television companies, which have historically provided video service, also face competition from direct broadcast satellite providers such as Dish and DirecTV and on-line video service",
+TDOC,"Teladoc Health, Inc.",WMT,Walmart Inc.,0.3441,"We also face competition from large, well-financed health plans that in some cases have developed their own virtual care, expert medical service or chronic condition management tools, as well as large",
+EBRCZ,"EBR Systems, Inc.",IDN,"Intellicheck, Inc.",0.3431,"Due to the highly competitive nature of the GPO and IDN contracting processes, we may not be able to
+obtain new, or maintain existing, contract positions with major GPOs and IDNs.",
+ACT,"Enact Holdings, Inc.",ASST,"Strive, Inc.",0.3427,"This strategy is based on the following priorities:
+
+Differentiate Enact from competitors
+
+•Strive to deliver best-in-class underwriting to well-established, deep and diversified customer base.",
+KTOS,"KRATOS DEFENSE & SECURITY SOLUTIONS, INC.",AIR,AAR CORP,0.3426,"Tier two competitors include smaller government contractors such as Mercury Systems, Qinetiq, Cobham, Aerojet Rocketdyne, CACI, Peraton, Linquest, Viasat and AAR Corp.",
+WAT,WATERS CORP /DE/,MS,MORGAN STANLEY,0.3424,"Based upon reports from independent marketing research firms and publicly-disclosed sales figures from competitors, the Company believes that it is one of the world’s largest manufacturers and distrib",
+BANT,"Bantec, Inc.",BBY,BEST BUY CO INC,0.3423,"These competitors primarily are Amazon, Best Buy, Drone Nerds, SYNNEX and other distributors of drones.",
+LOGI,LOGITECH INTERNATIONAL S.A.,AAPL,Apple Inc.,0.3415,"Tablet Accessories
+
+Competitors in the tablet accessories market are Apple, Zagg Inc., Kensington Computer Products Group, Belkin International, Inc., Targus Corporation and other less-established bra",
+BFLY,"Butterfly Network, Inc.",GE,GENERAL ELECTRIC CO,0.3403,"Our primary competitors include General Electric, Phillips Healthcare, Canon Medical Systems (f/k/a Toshiba), Hitachi and Siemens Healthineers, which, per IHI Markit data, are the top five manufacture",
+PRCT,PROCEPT BioRobotics Corp,IDN,"Intellicheck, Inc.",0.3400,"Even if we can prove the effectiveness of Aquablation therapy through clinical trials, there may not be broad adoption and use of our products and surgeons may elect not to use our products for any nu",
+HD,"HOME DEPOT, INC.",VATE,INNOVATE Corp.,0.3399,"To accomplish this, we are executing against five key strategies designed to drive growth in our business:
+
+• Connect associates to customer needs
+
+
+• Interconnected experience: connect stores to onli",
+VEEA,VEEA INC.,MS,MORGAN STANLEY,0.3397,"Roy also served as the Global Head of Tech M&A Origination for Morgan Stanley, where he was responsible for
+initiating large, industry-transforming mergers, helping clients take a long-term view of th",
+HNST,"Honest Company, Inc.",CRI,CARTERS INC,0.3393,"Select competitors in the Household and Wellness market include Carters, Inc., The Clorox Company, Reckitt Benckiser Group plc (maker of Lysol) and Unilever PLC (maker of Seventh Generation products).",
+JRVR,"James River Group Holdings, Inc.",MS,MORGAN STANLEY,0.3387,"Competitors in this segment include Hamilton Re, Ltd., PartnerRe Ltd., Tokio Milennium Re AG, MS Amlin, XL Catlin and Third Point Reinsurance Ltd.",
+AMSC,AMERICAN SUPERCONDUCTOR CORP /DE/,GE,GENERAL ELECTRIC CO,0.3384,"We also face indirect competition in the wind energy market from global manufacturers of wind turbines, such as Siemens Gamesa, General Electric, Vestas and Suzlon.",
+TDUP,ThredUp Inc.,WMT,Walmart Inc.,0.3381,"Competitors offering the same or similar goods or services include:
+•secondhand marketplaces, such as eBay Inc., Mercari, Inc., Poshmark, Inc., The RealReal, Inc., Vinted and Vestiaire Collective;
+•la",
+TCX,TUCOWS INC /PA/,CMCSA,COMCAST CORP,0.3379,"Broadband providers such as AT&T, Comcast, Verizon and Lumen Technologies, who primarily compete with Ting Internet services.",
+QMCO,QUANTUM CORP /DE/,ORCL,ORACLE CORP,0.3364,"In the tape automation
+market, we primarily compete for midrange and enterprise reseller and end user
+business with Dell, IBM and Oracle as well as HP through its OEM relationship
+with other tape auto",
+YUM,YUM BRANDS INC,VATE,INNOVATE Corp.,0.3358,"Our Recipe for Growth is based on four key drivers:
+•Unrivaled Culture and Talent: Leverage our culture and people capability to fuel brand performance and franchise success
+•Unmatched Operating Capab",
+ANGO,ANGIODYNAMICS INC,IDN,"Intellicheck, Inc.",0.3356,"Due to the highly competitive nature of the GPO and IDN contracting processes, we may not be able to obtain market prices for our products or obtain or maintain contract positions with major GPOs and ",
+FIEE,"FiEE, Inc.",UI,Ubiquiti Inc.,0.3353,"|
+|---|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+TELA,"TELA Bio, Inc.",IDN,"Intellicheck, Inc.",0.3351,"We may not be able to renew existing contracts with GPOs or IDNs and due to the highly competitive nature of the bidding process and the GPO and IDN contracting processes in the U.S., we may not be ab",
+INO,"INOVIO PHARMACEUTICALS, INC.",VATE,INNOVATE Corp.,0.3345,"Based on regulatory feedback and the competitive landscape for COVID-19 vaccines, in 2022 we discontinued the INNOVATE trial and pursued a strategy to develop our COVID-19 vaccine as a potential heter",
+ABCL,AbCellera Biologics Inc.,LINE,"Lineage, Inc.",0.3342,"In January 2021, the Court determined that
+
+60
+
+there was no jurisdiction over AbCellera or Lineage and dismissed the unfair competition claims but ordered jurisdictional discovery on a limited basis ",
+TKO,"TKO Group Holdings, Inc.",AAPL,Apple Inc.,0.3341,"Many well-funded digital companies (such as Amazon, Apple, Facebook, Hulu, Netflix and YouTube) have been competing with the traditional television business model and, while it has been widely reporte",
+CVEO,Civeo Corp,COMP,"Compass, Inc.",0.3340,"We compete against ISS, Sodexo, Compass Group, Northern Rise (as a division of Sirrom Corporation) and Cater Care for third-party facility management services.",
+WOLF,"WOLFSPEED, INC.",ON,ON SEMICONDUCTOR CORP,0.3334,"Our silicon carbide based power devices compete with silicon carbide power semiconductor solutions offered by Infineon Technologies AG, Mitsubishi Electric Corporation (Mitsubishi), ON Semiconductor C",
+OCLN,"ORIGINCLEAR, INC.",BKR,Baker Hughes Co,0.3333,"Direct competitors using some form of electro-coagulation technologies include: Halliburton, Watertectonics, Bosque, Ecolotron,
+Quantum-ionics, Kaselco, Baker Hughes, RecylClean, Axine Water and Ecosp",
+OLN,OLIN Corp,MS,MORGAN STANLEY,0.3331,| Products & Services                                                                        | Major End Uses                                                                                          |,
+CARR,CARRIER GLOBAL Corp,NWL,NEWELL BRANDS INC.,0.3329,"Some of our key competitors include Daikin Industries, Trane Technologies, Johnson Controls, Lennox International, Honeywell, Siemens, Bosch, Assa Abloy, MSA Safety, Stanley Black & Decker, Newell Bra",
+ELUT,ELUTIA INC.,ABBV,AbbVie Inc.,0.3311,"SimpliDerm competes primarily against human-derived acellular dermis matrix meshes, including AbbVie’s AlloDerm, Stryker’s DermACELL and MTF’s FlexHD.",
+ONCO,"Onconetix, Inc.",IDN,"Intellicheck, Inc.",0.3311,"Due
+to the highly competitive nature of the GPO and IDN contracting processes, we may not be able to obtain new contract positions with major
+GPOs and IDNs.",
+SUNE,"SUNation Energy, Inc.",MSFT,MICROSOFT CORP,0.3307,"JDL’s
+expertise is in developing, deploying and maintaining solutions that enable and
+enhance IT landscapes specific to these core competencies:
+
+Virtualization:
+
+By leveraging industry
+knowledge and ",
+MGTE,Marblegate Capital Corp,AAPL,Apple Inc.,0.3305,"Several companies are developing
+autonomous ride share technology, including Aurora, Waymo, Cruise Automation, Tesla, Apple, Zoox (which Amazon has acquired), Aptiv, and Nuro, either alone or through ",

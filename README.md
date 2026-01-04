@@ -75,12 +75,13 @@ Using Neo4j Graph Data Science (GDS):
 | `USES` | Domain → Technology | 46,081 | HTTP fingerprinting |
 | `LIKELY_TO_ADOPT` | Domain → Technology | 41,250 | PageRank prediction |
 | `CO_OCCURS_WITH` | Technology → Technology | 41,220 | Co-occurrence analysis |
-| `HAS_COMPETITOR` | Company → Company | 2,999 | Extracted from 10-K (embedding verified) |
+| `HAS_COMPETITOR` | Company → Company | 3,249 | Extracted from 10-K (embedding verified, threshold ≥0.35) |
 | `HAS_DOMAIN` | Company → Domain | 3,745 | Company website |
 | `HAS_PARTNER` | Company → Company | 588 | Extracted from 10-K (embedding verified) |
 | `HAS_CUSTOMER` | Company → Company | 243 | Extracted from 10-K (LLM verified) |
 | `HAS_SUPPLIER` | Company → Company | 130 | Extracted from 10-K (LLM verified) |
-| `CANDIDATE_*` | Company → Company | 1,298 | Medium confidence (with evidence) |
+| `CANDIDATE_*` | Company → Company | 1,048 | Medium confidence (with evidence) |
+| `IMPLICIT_COMPETITOR` | Company → Company | 15,000 | Same industry (Yahoo Finance) |
 
 For complete schema documentation, see [docs/graph_schema.md](docs/graph_schema.md).
 

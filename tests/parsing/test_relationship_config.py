@@ -22,7 +22,7 @@ class TestRelationshipConfig:
         config = RELATIONSHIP_CONFIGS["HAS_COMPETITOR"]
         assert config.fact_type == "HAS_COMPETITOR"
         assert config.candidate_type == "CANDIDATE_COMPETITOR"
-        assert config.high_threshold == 0.40
+        assert config.high_threshold == 0.35  # Lowered from 0.40 for more recall
         assert config.medium_threshold == 0.25
         assert config.enabled is True
         assert config.analytics_ready is True

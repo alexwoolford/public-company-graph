@@ -274,6 +274,7 @@ TICKER_BLOCKLIST = {
     "GPU",
     "HAS",
     "HHS",
+    "IDN",  # IDN (Integrated Delivery Network) - healthcare term, matches Intellicheck ticker
     "III",  # III (Roman numeral) - matches Information Services Group ticker
     "IOT",  # IoT (Internet of Things) - matches Samsara ticker
     "KEY",  # KEY (common word) - matches KeyCorp ticker
